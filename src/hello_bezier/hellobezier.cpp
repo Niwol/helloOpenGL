@@ -2,7 +2,7 @@
 
 BezierDemo::BezierDemo(int width, int height)
     : OpenGLDemo(width, height), m_renderer(width, height),
-      m_bezierCurve(50), m_selectedPoint{0} {
+      m_bezierCurve(200), m_selectedPoint{0} {
 
   // ************************************************
   // ********************  Mesh  ********************
@@ -13,6 +13,7 @@ BezierDemo::BezierDemo(int width, int height)
   m_bezierCurve.addPoint(glm::vec3(-1.0f, -0.5f, 0.0f));
   m_bezierCurve.addPoint(glm::vec3(-0.25f, 1.0f, 0.0f));
   m_bezierCurve.addPoint(glm::vec3(0.25f, -0.5f, 0.0f));
+  m_bezierCurve.addPoint(glm::vec3(1.0f, 1.0f, 0.0f));
   m_bezierCurve.addPoint(glm::vec3(1.0f, 1.0f, 0.0f));
 
   m_bezierCurve.genCurve(vertices, indices);

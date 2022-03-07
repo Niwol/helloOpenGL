@@ -77,7 +77,8 @@ void BezierCurve::genControlPoints(std::vector<GLfloat> &vertices,
 
 float BezierCurve::N(int index, float u) {
 
-  float res = std::pow(u, index) * std::pow(1 - u, m_nbControlPoints - index);
+  float res =
+      std::pow(u, index) * std::pow(1 - u, m_nbControlPoints - index - 1);
 
   return m_binomialCoeff[index] * res;
 }
