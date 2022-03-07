@@ -39,9 +39,6 @@
      <string>&amp;Demo</string>
     </property>
     <addaction name="actionHello_clear"/>
-    <addaction name="actionHello_triangle"/>
-    <addaction name="actionHello_camera"/>
-    <addaction name="actionHello_spheres"/>
     <addaction name="actionHello_bezier"/>
    </widget>
    <addaction name="menu_Demo"/>

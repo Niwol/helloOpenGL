@@ -8,9 +8,6 @@
 #include <stdexcept>
 
 #include "hello_bezier/hellobezier.h"
-#include "hello_camera/hellocamera.h"
-#include "hello_spheres/hellospheres.h"
-#include "hello_triangles/hellotriangles.h"
 
 MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
     : QOpenGLWidget(parent) /*, QOpenGLFunctions_4_1_Core()*/,
@@ -19,18 +16,6 @@ MyOpenGLWidget::MyOpenGLWidget(QWidget *parent)
   _democonstructors.push_back([](int width, int height) -> OpenGLDemo * {
     std::cout << "Hello clear ..." << std::endl;
     return new OpenGLDemo(width, height);
-  });
-  _democonstructors.push_back([](int width, int height) -> OpenGLDemo * {
-    std::cout << "Hello triangles ..." << std::endl;
-    return new SimpleTriangle(width, height);
-  });
-  _democonstructors.push_back([](int width, int height) -> OpenGLDemo * {
-    std::cout << "Hello camera ..." << std::endl;
-    return new SimpleCamera(width, height);
-  });
-  _democonstructors.push_back([](int width, int height) -> OpenGLDemo * {
-    std::cout << "Hello spheres ..." << std::endl;
-    return new SimpleSpheres(width, height);
   });
   _democonstructors.push_back([](int width, int height) -> OpenGLDemo * {
     std::cout << "Hello bezier ..." << std::endl;
@@ -108,7 +93,7 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event) {
   case Qt::Key_0:
   case Qt::Key_1:
   case Qt::Key_2:
-  // case Qt::Key_3:  // Provoking segfault due to Mesh struct
+  case Qt::Key_3:
   case Qt::Key_4:
   case Qt::Key_5:
   case Qt::Key_6:
@@ -123,7 +108,7 @@ void MyOpenGLWidget::keyPressEvent(QKeyEvent *event) {
   case Qt::Key_Right:
   case Qt::Key_Down:
     _openglDemo->keyboardmove(event->key() - Qt::Key_Left,
-                              1. / 100 /*double(_lastime)/10.*/);
+                              1. / 10 /*double(_lastime)/10.*/);
     update();
     break;
   // Wireframe key

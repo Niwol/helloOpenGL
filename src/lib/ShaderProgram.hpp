@@ -1,7 +1,6 @@
 #pragma once
 
 #include "opengl_stuff.h"
-
 #include <QOpenGLFunctions_4_1_Core>
 
 #include <string>

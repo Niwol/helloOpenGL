@@ -44,18 +44,6 @@ void MainWindow::on_actionHello_clear_triggered() {
   openglWidget->activatedemo(0);
 }
 
-void MainWindow::on_actionHello_triangle_triggered() {
-  openglWidget->activatedemo(1);
-}
-
-void MainWindow::on_actionHello_camera_triggered() {
-  openglWidget->activatedemo(2);
-}
-
-void MainWindow::on_actionHello_spheres_triggered() {
-  // openglWidget->activatedemo(3);   // Provoking segfault due to Mesh struct
-}
-
 void MainWindow::on_actionHello_bezier_triggered() {
-  openglWidget->activatedemo(4);
+  openglWidget->activatedemo(1);
 }

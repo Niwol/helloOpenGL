@@ -14,8 +14,12 @@ public:
   ~Mesh();
 
   void to_square();
-  void use();                                        // temporary
-  inline uint getNbIndices() { return m_nbIndices; } // temporary
+  void to_line();
+  void commit();
+
+  void set_vertices(std::vector<GLfloat> vertices);
+  void set_normals(std::vector<GLfloat> normals);
+  void set_indices(std::vector<GLuint> indices, int mode);
 
 private:
   friend class Renderer;
@@ -25,6 +29,10 @@ private:
   GLuint m_EBO;
   GLuint m_NBO;
 
+  std::vector<GLfloat> m_vertices;
+  std::vector<GLfloat> m_normals;
+  std::vector<GLuint> m_indices;
+
   uint m_nbIndices;
-  int m_type;
+  int m_mode;
 };
