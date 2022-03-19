@@ -4,10 +4,12 @@ Renderer::Renderer(int width, int height) : m_width{width}, m_height{height} {}
 
 Renderer::~Renderer() {}
 
-void Renderer::addRenderObject(RenderObject *ro) {
+void Renderer::addRenderObject(std::shared_ptr<RenderObject> ro) {
   m_renderObjects.push_back(ro);
 }
-void Renderer::setShaderProgram(ShaderProgram *sp) { m_shaderProgram = sp; }
+void Renderer::setShaderProgram(std::shared_ptr<ShaderProgram> sp) {
+  m_shaderProgram = sp;
+}
 void Renderer::setCamera(std::shared_ptr<Camera> cam) { m_camera = cam; }
 void Renderer::setDimension(int width, int height) {
   m_width = width;

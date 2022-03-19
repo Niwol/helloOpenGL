@@ -2,11 +2,11 @@
 
 #include "opengldemo.h"
 
-#include "lib/BezierCurve.hpp"
+#include "lib/Geometry/BezierCurve.hpp"
+#include "lib/Geometry/mesh.hpp"
 #include "lib/RenderObject.hpp"
 #include "lib/ShaderProgram.hpp"
 #include "lib/camera.hpp"
-#include "lib/mesh.hpp"
 #include "lib/renderer.hpp"
 
 #include <memory>
@@ -31,13 +31,11 @@ public:
   void draw() override;
 
 private:
-  ShaderProgram m_shaderProgram;
-  Renderer m_renderer;
-  RenderObject m_renderObject;
-  RenderObject m_ro_controlPoints;
+  std::shared_ptr<ShaderProgram> m_shaderProgram;
+  std::shared_ptr<Renderer> m_renderer;
 
   // Bezier curve
-  BezierCurve m_bezierCurve;
+  std::shared_ptr<BezierCurve> m_bezierCurve;
   int m_selectedPoint;
 
   // Camera
