@@ -3,20 +3,21 @@
 BezierCurve::BezierCurve(uint nbPoints)
     : m_nbControlPoints{0}, m_nbPoints{nbPoints} {
   m_RO_curve = std::make_shared<RenderObject>();
-  m_RO_controlPoints = std::make_shared<RenderObject>();
+  m_RO_controlPolynom = std::make_shared<RenderObject>();
 }
 
 BezierCurve::~BezierCurve() {}
 
 void BezierCurve::transform(glm::mat4 transform) {
   m_RO_curve->transform(transform);
-  m_RO_controlPoints->transform(transform);
+  m_RO_controlPolynom->transform(transform);
 }
 
 void BezierCurve::addPoint(glm::vec3 point) {
   m_controlPoints.push_back(point);
   m_nbControlPoints += 1;
   genBinomialCoeff();
+  genCurve();
 }
 
 void BezierCurve::setPoint(glm::vec3 point, uint index) {
@@ -26,6 +27,8 @@ void BezierCurve::setPoint(glm::vec3 point, uint index) {
     std::cout << "WARNING: BezierCurve::setPoint: index out of range"
               << std::endl;
   }
+
+  genCurve();
 }
 
 void BezierCurve::movePoint(glm::vec3 point, uint index) {
@@ -35,18 +38,17 @@ void BezierCurve::movePoint(glm::vec3 point, uint index) {
     std::cout << "WARNING: BezierCurve::setPoint: index out of range"
               << std::endl;
   }
+
+  genCurve();
 }
 
-void BezierCurve::genCurve() {
+void BezierCurve::genCurve(bool printWarning) {
   if (m_controlPoints.size() >= 2) {
+    // Curve
     std::vector<GLfloat> vertices;
     std::vector<GLuint> indices;
 
-    Mesh *mesh;
-    if ((mesh = m_RO_curve->getMesh()) == nullptr) {
-      m_RO_curve->setMesh(std::make_unique<Mesh>());
-      mesh = m_RO_curve->getMesh();
-    }
+    Mesh *mesh = m_RO_curve->getMesh();
 
     for (uint i = 0; i < m_nbPoints; i++) {
       glm::vec3 p = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -69,35 +71,30 @@ void BezierCurve::genCurve() {
     mesh->set_vertices(vertices);
     mesh->set_indices(indices, GL_LINES);
 
-  } else {
+    // Control polynom
+    vertices.clear();
+    indices.clear();
+
+    mesh = m_RO_controlPolynom->getMesh();
+
+    for (uint i = 0; i < m_nbControlPoints; i++) {
+      vertices.push_back(m_controlPoints[i].x);
+      vertices.push_back(m_controlPoints[i].y);
+      vertices.push_back(m_controlPoints[i].z);
+
+      if (i > 0) {
+        indices.push_back(i - 1);
+        indices.push_back(i);
+      }
+    }
+
+    mesh->set_vertices(vertices);
+    mesh->set_indices(indices, GL_LINES);
+
+  } else if (printWarning) {
     std::cout << "WARNING: BezierCurve::genCurve: not enought control points"
               << std::endl;
   }
-}
-
-void BezierCurve::genControlPoints() {
-  std::vector<GLfloat> vertices;
-  std::vector<GLuint> indices;
-
-  Mesh *mesh;
-  if ((mesh = m_RO_controlPoints->getMesh()) == nullptr) {
-    m_RO_controlPoints->setMesh(std::make_unique<Mesh>());
-    mesh = m_RO_controlPoints->getMesh();
-  }
-
-  for (uint i = 0; i < m_nbControlPoints; i++) {
-    vertices.push_back(m_controlPoints[i].x);
-    vertices.push_back(m_controlPoints[i].y);
-    vertices.push_back(m_controlPoints[i].z);
-
-    if (i > 0) {
-      indices.push_back(i - 1);
-      indices.push_back(i);
-    }
-  }
-
-  mesh->set_vertices(vertices);
-  mesh->set_indices(indices, GL_LINES);
 }
 
 float BezierCurve::N(int index, float u) {

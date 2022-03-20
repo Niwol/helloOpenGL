@@ -13,6 +13,7 @@ public:
 
   ~Mesh();
 
+  void to_cube();
   void to_square();
   void to_line();
   void commit();

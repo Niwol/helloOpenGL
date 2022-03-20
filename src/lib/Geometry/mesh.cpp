@@ -19,6 +19,73 @@ Mesh::~Mesh() {
   glDeleteVertexArrays(1, &m_VAO);
 }
 
+void Mesh::to_cube() {
+
+  // clang-format off
+  m_vertices = {
+    // Front face
+    -0.5f,  0.5f,  0.5f,   // top left
+    -0.5f, -0.5f,  0.5f,   // bottom left
+     0.5f,  0.5f,  0.5f,   // top rigth
+     0.5f, -0.5f,  0.5f,   // bottom rigth
+
+    // Back face
+    -0.5f,  0.5f, -0.5f,   // top left
+    -0.5f, -0.5f, -0.5f,   // bottom left
+     0.5f,  0.5f, -0.5f,   // top rigth
+     0.5f, -0.5f, -0.5f    // bottom rigth
+  };
+
+  glm::vec3 normal = glm::vec3(1.0f);
+  normal = glm::normalize(normal);
+
+  m_normals = {
+    // Front face
+    -normal.x,  normal.y,  normal.z,   // top left
+    -normal.x, -normal.y,  normal.z,   // bottom left
+     normal.x,  normal.y,  normal.z,   // top rigth
+     normal.x, -normal.y,  normal.z,   // bottom rigth
+
+    // Back face
+    -normal.x,  normal.y, -normal.z,   // top left
+    -normal.x, -normal.y, -normal.z,   // bottom left
+     normal.x,  normal.y, -normal.z,   // top rigth
+     normal.x, -normal.y, -normal.z,   // bottom rigth
+  };
+
+  m_indices = {
+    // Front face
+    0, 1, 2,
+    1, 3, 2,
+
+    // Top face
+    4, 0, 6,
+    0, 2, 6,
+
+    // Right face
+    2, 3, 6,
+    3, 7, 6,
+
+    // Left face
+    4, 5, 0,
+    5, 1, 0,
+
+    // Back face
+    6, 7, 4,
+    7, 5, 4,
+
+    // Bottom face
+    1, 5, 3,
+    5, 7, 3
+  };
+  // clang-format on
+
+  m_nbIndices = m_indices.size();
+  m_mode = GL_TRIANGLES;
+
+  commit();
+}
+
 void Mesh::to_square() {
 
   // clang-format off
@@ -33,9 +100,10 @@ void Mesh::to_square() {
     0, 1, 2,
     1, 2, 3
   };
+  // clang-format on
+
   m_nbIndices = m_indices.size();
   m_mode = GL_TRIANGLES;
-  // clang-format on
 
   commit();
 }
@@ -57,9 +125,10 @@ void Mesh::to_line() {
     2, 3,
     3, 4
   };
+  // clang-format on
+
   m_nbIndices = m_indices.size();
   m_mode = GL_LINES;
-  // clang-format on
 
   commit();
 }

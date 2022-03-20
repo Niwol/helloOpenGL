@@ -7,6 +7,8 @@
 #include <memory>
 
 class RenderObject {
+  friend class Renderer;
+
 public:
   RenderObject();
   ~RenderObject();
@@ -36,4 +38,7 @@ public:
 private:
   std::unique_ptr<Mesh> m_mesh;
   glm::mat4 m_modelMatix;
+
+  // ID used by the renderer to keep track of the objects
+  uint m_rendererID;
 };

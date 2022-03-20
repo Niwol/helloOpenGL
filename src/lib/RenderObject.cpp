@@ -1,6 +1,7 @@
 #include "RenderObject.hpp"
 
-RenderObject::RenderObject() : m_mesh{nullptr} {
+RenderObject::RenderObject() : m_rendererID{0} {
+  m_mesh = std::make_unique<Mesh>();
   m_modelMatix = glm::mat4(1.0f);
 }
 RenderObject::~RenderObject() {}

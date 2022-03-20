@@ -22,17 +22,15 @@ public:
   void setPoint(glm::vec3 position, uint index);
   void movePoint(glm::vec3 position, uint index);
 
-  inline int get_nbPoints() { return m_controlPoints.size(); }
-
-  void genCurve();
-  void genControlPoints();
+  inline int get_nbControlPoints() { return m_controlPoints.size(); }
 
   inline std::shared_ptr<RenderObject> get_ro_curve() { return m_RO_curve; }
-  inline std::shared_ptr<RenderObject> get_ro_controlPoints() {
-    return m_RO_controlPoints;
+  inline std::shared_ptr<RenderObject> get_ro_controlPolynom() {
+    return m_RO_controlPolynom;
   }
 
 private:
+  void genCurve(bool printWarning = false);
   float N(int index, float u);
   void genBinomialCoeff();
 
@@ -43,5 +41,5 @@ private:
   uint m_nbPoints;
 
   std::shared_ptr<RenderObject> m_RO_curve;
-  std::shared_ptr<RenderObject> m_RO_controlPoints;
+  std::shared_ptr<RenderObject> m_RO_controlPolynom;
 };

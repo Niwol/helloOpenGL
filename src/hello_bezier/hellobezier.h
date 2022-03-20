@@ -3,6 +3,7 @@
 #include "opengldemo.h"
 
 #include "lib/Geometry/BezierCurve.hpp"
+#include "lib/Geometry/BezierSurface.hpp"
 #include "lib/Geometry/mesh.hpp"
 #include "lib/RenderObject.hpp"
 #include "lib/ShaderProgram.hpp"
@@ -32,11 +33,14 @@ public:
 
 private:
   std::shared_ptr<ShaderProgram> m_shaderProgram;
+  std::shared_ptr<ShaderProgram> m_normalShaderProgram;
   std::shared_ptr<Renderer> m_renderer;
 
-  // Bezier curve
+  // Bezier Geometry
   std::shared_ptr<BezierCurve> m_bezierCurve;
+  std::shared_ptr<BezierSurface> m_bezierSurface;
   int m_selectedPoint;
+  int m_selectedObject;
 
   // Camera
   using CameraSelector = std::function<Camera *()>;

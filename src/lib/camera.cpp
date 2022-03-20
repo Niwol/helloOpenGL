@@ -56,10 +56,16 @@ EulerCamera::~EulerCamera() {}
 void EulerCamera::processkeyboard(Camera_Movement direction,
                                   GLfloat deltaTime) {
   GLfloat velocity = _movementspeed * deltaTime;
-  if (direction == FORWARD)
-    _position += _front * velocity;
-  if (direction == BACKWARD)
-    _position -= _front * velocity;
+  if (direction == FORWARD) {
+    auto vec = glm::vec3(_front.x, 0.0f, _front.z);
+    vec = glm::normalize(vec);
+    _position += vec * velocity;
+  }
+  if (direction == BACKWARD) {
+    auto vec = glm::vec3(_front.x, 0.0f, _front.z);
+    vec = glm::normalize(vec);
+    _position -= vec * velocity;
+  }
   if (direction == LEFT)
     _position -= _right * velocity;
   if (direction == RIGHT)

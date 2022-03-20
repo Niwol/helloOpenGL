@@ -1,12 +1,35 @@
 #include "renderer.hpp"
 
-Renderer::Renderer(int width, int height) : m_width{width}, m_height{height} {}
+Renderer::Renderer(int width, int height)
+    : m_width{width}, m_height{height}, m_nextID{1} {}
 
 Renderer::~Renderer() {}
 
-void Renderer::addRenderObject(std::shared_ptr<RenderObject> ro) {
-  m_renderObjects.push_back(ro);
+void Renderer::addRenderObject(std::shared_ptr<RenderObject> ro,
+                               bool printWarning) {
+  try {
+    m_renderObjects.at(ro->m_rendererID);
+
+    if (printWarning)
+      std::cout << "WARNING: Renderer::addRenderObject: renderer already "
+                   "contains the render object"
+                << std::endl;
+  } catch (std::out_of_range &e) {
+    ro->m_rendererID = m_nextID;
+    m_renderObjects.insert(
+        std::pair<uint, std::shared_ptr<RenderObject>>(m_nextID, ro));
+    m_nextID++;
+  }
 }
+
+void Renderer::removeRenderObject(std::shared_ptr<RenderObject> ro,
+                                  bool printWarning) {
+  if (m_renderObjects.erase(ro->m_rendererID) == 0 && printWarning)
+    std::cout << "WARNING: Renderer::removeRenderObject: renderer didn't "
+                 "contain the render object"
+              << std::endl;
+}
+
 void Renderer::setShaderProgram(std::shared_ptr<ShaderProgram> sp) {
   m_shaderProgram = sp;
 }
@@ -27,7 +50,10 @@ void Renderer::draw() {
 
     m_shaderProgram->use();
 
-    for (auto &ro : m_renderObjects) {
+    // std::cout << "Renderer::draw: drawing " << m_renderObjects.size()
+    //           << " objects" << std::endl;
+    for (auto &pair : m_renderObjects) {
+      auto ro = pair.second;
       Mesh *mesh = ro->getMesh();
 
       m_shaderProgram->setMat4("model", ro->getModelMatrix());
