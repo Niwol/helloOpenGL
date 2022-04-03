@@ -4,6 +4,7 @@ Mesh::Mesh() {
   glGenBuffers(1, &m_VBO);
   glGenBuffers(1, &m_EBO);
   glGenBuffers(1, &m_NBO);
+  glGenBuffers(1, &m_UVBO);
 
   glGenVertexArrays(1, &m_VAO);
 
@@ -15,6 +16,7 @@ Mesh::~Mesh() {
   glDeleteBuffers(1, &m_VBO);
   glDeleteBuffers(1, &m_NBO);
   glDeleteBuffers(1, &m_EBO);
+  glDeleteBuffers(1, &m_UVBO);
 
   glDeleteVertexArrays(1, &m_VAO);
 }
@@ -51,6 +53,20 @@ void Mesh::to_cube() {
     -normal.x, -normal.y, -normal.z,   // bottom left
      normal.x,  normal.y, -normal.z,   // top rigth
      normal.x, -normal.y, -normal.z,   // bottom rigth
+  };
+
+  m_uvCoords = {
+    // Front face
+    0.0f, 1.0f,   // top left
+    0.0f, 0.0f,   // bottom left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
+
+    // Back face
+    0.0f, 1.0f,   // top left
+    0.0f, 0.0f,   // bottom left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
   };
 
   m_indices = {
@@ -153,6 +169,14 @@ void Mesh::commit() {
                         (GLvoid *)0);
   glEnableVertexAttribArray(1);
 
+  // UVBO
+  glBindBuffer(GL_ARRAY_BUFFER, m_UVBO);
+  glBufferData(GL_ARRAY_BUFFER, m_uvCoords.size() * sizeof(GLfloat),
+               m_uvCoords.data(), GL_STATIC_DRAW);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat),
+                        (GLvoid *)0);
+  glEnableVertexAttribArray(2);
+
   // EBO
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(GLuint),
@@ -174,5 +198,9 @@ void Mesh::set_indices(std::vector<GLuint> indices, int mode) {
   m_indices = indices;
   m_nbIndices = indices.size();
   m_mode = mode;
+  commit();
+}
+void Mesh::set_uvCoords(std::vector<GLfloat> uvCoords) {
+  m_uvCoords = uvCoords;
   commit();
 }

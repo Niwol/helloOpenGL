@@ -4,6 +4,86 @@ BezierDemo::BezierDemo(int width, int height)
     : OpenGLDemo(width, height), m_selectedPoint{0}, m_selectedObject{0} {
 
   m_renderer = std::make_shared<Renderer>(width, height);
+  // **********************************************************
+  // ********************  Shader program  ********************
+  m_shaderProgram = std::make_shared<ShaderProgram>();
+  m_normalShaderProgram = std::make_shared<ShaderProgram>();
+  m_uvShaderProgram = std::make_shared<ShaderProgram>();
+  m_textureShaderProgram = std::make_shared<ShaderProgram>();
+  m_simpleLightShaderProgram = std::make_shared<ShaderProgram>();
+  m_brdfShaderProgram = std::make_shared<ShaderProgram>();
+
+  if (!m_shaderProgram->createProgram("../src/shaders/simpleShader.vs",
+                                      "../src/shaders/simpleShader.fs")) {
+    std::cout << "Abord" << std::endl;
+    exit(1);
+  }
+
+  if (!m_normalShaderProgram->createProgram("../src/shaders/normalShader.vs",
+                                            "../src/shaders/normalShader.fs")) {
+    std::cout << "Abord" << std::endl;
+    exit(1);
+  }
+
+  if (!m_uvShaderProgram->createProgram("../src/shaders/uvShader.vs",
+                                        "../src/shaders/uvShader.fs")) {
+    std::cout << "Abord" << std::endl;
+    exit(1);
+  }
+
+  if (!m_textureShaderProgram->createProgram(
+          "../src/shaders/textureShader.vs",
+          "../src/shaders/textureShader.fs")) {
+    std::cout << "Abord" << std::endl;
+    exit(1);
+  }
+
+  if (!m_simpleLightShaderProgram->createProgram(
+          "../src/shaders/simpleLightShader.vs",
+          "../src/shaders/simpleLightShader.fs")) {
+    std::cout << "Abord" << std::endl;
+    exit(1);
+  }
+
+  if (!m_brdfShaderProgram->createProgram("../src/shaders/brdfShader.vs",
+                                          "../src/shaders/brdfShader.fs")) {
+    std::cout << "Abord" << std::endl;
+    exit(1);
+  }
+
+  // ********************  Shader program  ********************
+  // **********************************************************
+
+  // ****************************************************
+  // ********************  Material  ********************
+  m_colorMaterial = std::make_shared<Material>();
+  m_textureMaterial = std::make_shared<Material>();
+
+  // Color material
+  m_colorMaterial->diffuse = glm::vec3(0.7f, 0.3f, 0.5f);
+  m_colorMaterial->specular = glm::vec3(0.5f);
+  m_colorMaterial->shininess = 32;
+  m_colorMaterial->isTextureMaterial = false;
+
+  // Texture Material
+  m_textureMaterial->isTextureMaterial = true;
+  m_textureMaterial->diffuseTexture =
+      std::make_shared<Texture>("diffuseTexture");
+  if (!m_textureMaterial->diffuseTexture->load("../textures/container2.png")) {
+    m_textureMaterial->diffuseTexture.reset();
+    m_textureMaterial->isTextureMaterial = false;
+  }
+
+  m_textureMaterial->specularTexture =
+      std::make_shared<Texture>("specularTexture");
+  if (!m_textureMaterial->specularTexture->load(
+          "../textures/container2_specular.png")) {
+    m_textureMaterial->specularTexture.reset();
+    m_textureMaterial->isTextureMaterial = false;
+  }
+  m_textureMaterial->shininess = 32;
+  // ********************  Material  ********************
+  // ****************************************************
 
   // ********************************************************
   // ********************  Bezier curve  ********************
@@ -17,6 +97,9 @@ BezierDemo::BezierDemo(int width, int height)
   m_renderer->addRenderObject(m_bezierCurve->get_ro_curve());
   m_renderer->addRenderObject(m_bezierCurve->get_ro_controlPolynom());
 
+  m_bezierCurve->get_ro_curve()->setShaderProgram(m_shaderProgram);
+  m_bezierCurve->get_ro_controlPolynom()->setShaderProgram(m_shaderProgram);
+
   glm::vec3 translation = glm::vec3(-2.0f, 0.0f, -5.0f);
   m_bezierCurve->transform(glm::translate(glm::mat4(1.0f), translation));
   // ********************  Bezier curve  ********************
@@ -24,13 +107,13 @@ BezierDemo::BezierDemo(int width, int height)
 
   // **********************************************************
   // ********************  Bezier surface  ********************
-  m_bezierSurface = std::make_shared<BezierSurface>(20, 50);
+  m_bezierSurface = std::make_shared<BezierSurface>(50, 40);
 
   m_bezierSurface->addLine({
-      glm::vec3(-1.0f, -0.5f, 1.0f),
-      glm::vec3(-0.3f, 0.5f, 1.0f),
-      glm::vec3(0.3f, 0.5f, 1.0f),
-      glm::vec3(1.0f, -0.5f, 1.0f),
+      glm::vec3(-1.0f, -2.0f, 1.0f),
+      glm::vec3(-0.3f, 2.0f, 1.0f),
+      glm::vec3(0.3f, 2.0f, 1.0f),
+      glm::vec3(1.0f, -2.0f, 1.0f),
   });
   m_bezierSurface->addLine({
       glm::vec3(-1.0f, -0.2f, 0.3f),
@@ -51,78 +134,31 @@ BezierDemo::BezierDemo(int width, int height)
       glm::vec3(1.0f, 0.5f, -1.0f),
   });
 
-  for (auto &ro : m_bezierSurface->get_ro_controlPoints())
+  for (auto &ro : m_bezierSurface->get_ro_controlPoints()) {
+    ro->setShaderProgram(m_shaderProgram);
     m_renderer->addRenderObject(ro);
+  }
 
+  m_bezierSurface->get_ro_surface()->setMaterial(m_colorMaterial);
+  m_bezierSurface->get_ro_surface()->setShaderProgram(m_shaderProgram);
   m_renderer->addRenderObject(m_bezierSurface->get_ro_surface());
-
-  // auto cube = std::make_shared<RenderObject>();
-  // cube->getMesh()->to_cube();
-  // m_renderer->addRenderObject(cube);
-
-  std::vector<GLfloat> vertices = {
-      -0.5f, 0.0f, -0.5f,
-
-      -0.5f, 0.0f, 0.5f,
-
-      0.5f,  0.0f, -0.5f,
-
-      0.0f,  0.0f, 0.0f,
-  };
-
-  glm::vec3 p1, p2, p3;
-  p1.x = vertices[0];
-  p1.y = vertices[1];
-  p1.z = vertices[2];
-  p2.x = vertices[3];
-  p2.y = vertices[4];
-  p2.z = vertices[5];
-  p3.x = vertices[6];
-  p3.y = vertices[7];
-  p3.z = vertices[8];
-
-  glm::vec3 v1, v2;
-  v1 = p3 - p1;
-  v2 = p2 - p1;
-  glm::vec3 normal = glm::cross(v2, v1);
-  normal = glm::normalize(normal);
-
-  vertices[9] = p1.x + normal.x;
-  vertices[10] = p1.y + normal.y;
-  vertices[11] = p1.z + normal.z;
-
-  auto ro = std::make_shared<RenderObject>();
-  ro->getMesh()->set_vertices(vertices);
-  ro->getMesh()->set_indices({0, 1, 2, 0, 1, 3, 1, 2, 3, 1, 3, 2},
-                             GL_TRIANGLES);
-
-  ro->transform(glm::translate(glm::mat4(1.0f), glm::vec3(5.f, 0.0f, 0.0f)));
-
-  m_renderer->addRenderObject(ro);
-
   // ********************  Bezier surface  ********************
   // **********************************************************
 
-  // **********************************************************
-  // ********************  Shader program  ********************
-  m_shaderProgram = std::make_shared<ShaderProgram>();
-  m_normalShaderProgram = std::make_shared<ShaderProgram>();
+  // **************************************************
+  // ********************  Lights  ********************
+  m_light = std::make_shared<PointLight>();
+  m_light->setPosition(glm::vec3(-0.7f, 1.0f, -0.5f));
 
-  if (!m_shaderProgram->createProgram("../src/shaders/simpleShader.vs",
-                                      "../src/shaders/simpleShader.fs")) {
-    std::cout << "Abord" << std::endl;
-    exit(1);
-  }
+  m_light->getRenderObject()->setShaderProgram(m_shaderProgram);
+  m_light->addShaderProgram(m_simpleLightShaderProgram);
+  m_light->addShaderProgram(m_textureShaderProgram);
+  m_light->addShaderProgram(m_brdfShaderProgram);
 
-  if (!m_normalShaderProgram->createProgram("../src/shaders/normalShader.vs",
-                                            "../src/shaders/normalShader.fs")) {
-    std::cout << "Abord" << std::endl;
-    exit(1);
-  }
-
-  m_renderer->setShaderProgram(m_shaderProgram);
-  // ********************  Shader program  ********************
-  // **********************************************************
+  m_renderer->addRenderObject(m_light->getRenderObject());
+  m_renderer->addPointLight(m_light);
+  // ********************  Lights  ********************
+  // **************************************************
 
   // **************************************************
   // ********************  Camera  ********************
@@ -144,8 +180,6 @@ BezierDemo::BezierDemo(int width, int height)
   // glEnable(GL_CULL_FACE);
   // glCullFace(GL_BACK);
   // glFrontFace(GL_CCW);
-
-  draw();
 }
 
 BezierDemo::~BezierDemo() {}
@@ -190,25 +224,43 @@ bool BezierDemo::keyboard(unsigned char k) {
     m_selectedPoint = (m_selectedPoint + 1) % nbPoints;
     return true;
   case 'q':
+    m_light->move(glm::vec3(-0.1f, 0.0f, 0.0f));
     m_bezierCurve->movePoint(glm::vec3(-0.1f, 0.0f, 0.0f), m_selectedPoint);
     return true;
   case 'd':
+    m_light->move(glm::vec3(0.1f, 0.0f, 0.0f));
     m_bezierCurve->movePoint(glm::vec3(0.1f, 0.0f, 0.0f), m_selectedPoint);
     return true;
   case 'z':
+    m_light->move(glm::vec3(0.0f, 0.0f, -0.1f));
     m_bezierCurve->movePoint(glm::vec3(0.0f, 0.1f, 0.0f), m_selectedPoint);
     return true;
   case 's':
+    m_light->move(glm::vec3(0.0f, 0.0f, 0.1f));
     m_bezierCurve->movePoint(glm::vec3(0.0f, -0.1f, 0.0f), m_selectedPoint);
     return true;
 
   case 'n':
-    m_renderer->setShaderProgram(m_normalShaderProgram);
-    // draw();
+    m_bezierSurface->get_ro_surface()->setShaderProgram(m_normalShaderProgram);
     return true;
   case 'b':
-    m_renderer->setShaderProgram(m_shaderProgram);
-    // draw();
+    m_bezierSurface->get_ro_surface()->setShaderProgram(m_uvShaderProgram);
+    return true;
+  case 'v':
+    m_bezierSurface->get_ro_surface()->setMaterial(m_textureMaterial);
+    m_bezierSurface->get_ro_surface()->setShaderProgram(m_textureShaderProgram);
+    return true;
+  case 'c':
+    m_bezierSurface->get_ro_surface()->setMaterial(m_colorMaterial);
+    m_bezierSurface->get_ro_surface()->setShaderProgram(
+        m_simpleLightShaderProgram);
+    return true;
+  case 'm':
+    m_bezierSurface->get_ro_surface()->setMaterial(m_colorMaterial);
+    m_bezierSurface->get_ro_surface()->setShaderProgram(m_brdfShaderProgram);
+    return true;
+  case 'x':
+    m_bezierSurface->get_ro_surface()->setShaderProgram(m_shaderProgram);
     return true;
 
   default:

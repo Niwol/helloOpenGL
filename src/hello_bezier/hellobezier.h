@@ -5,6 +5,7 @@
 #include "lib/Geometry/BezierCurve.hpp"
 #include "lib/Geometry/BezierSurface.hpp"
 #include "lib/Geometry/mesh.hpp"
+#include "lib/Light/PointLight.hpp"
 #include "lib/RenderObject.hpp"
 #include "lib/ShaderProgram.hpp"
 #include "lib/camera.hpp"
@@ -34,6 +35,10 @@ public:
 private:
   std::shared_ptr<ShaderProgram> m_shaderProgram;
   std::shared_ptr<ShaderProgram> m_normalShaderProgram;
+  std::shared_ptr<ShaderProgram> m_uvShaderProgram;
+  std::shared_ptr<ShaderProgram> m_textureShaderProgram;
+  std::shared_ptr<ShaderProgram> m_simpleLightShaderProgram;
+  std::shared_ptr<ShaderProgram> m_brdfShaderProgram;
   std::shared_ptr<Renderer> m_renderer;
 
   // Bezier Geometry
@@ -41,6 +46,13 @@ private:
   std::shared_ptr<BezierSurface> m_bezierSurface;
   int m_selectedPoint;
   int m_selectedObject;
+
+  // Materials
+  std::shared_ptr<Material> m_colorMaterial;
+  std::shared_ptr<Material> m_textureMaterial;
+
+  // Lights
+  std::shared_ptr<PointLight> m_light;
 
   // Camera
   using CameraSelector = std::function<Camera *()>;

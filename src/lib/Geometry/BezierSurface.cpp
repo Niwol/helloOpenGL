@@ -63,11 +63,11 @@ void BezierSurface::genSurface(bool printWarning) {
     std::vector<GLfloat> vertices;
     std::vector<GLuint> indices;
     std::vector<GLfloat> normals;
-    std::vector<glm::vec3> normals_vec3;
+    std::vector<GLfloat> uvCoords;
 
     Mesh *mesh = m_RO_surface->getMesh();
 
-    // Vertices
+    // Vertices / UV coords
     for (uint j = 0; j < m_nbPoints_row; j++) {
       for (uint i = 0; i < m_nbPoints_line; i++) {
         glm::vec3 p = glm::vec3(0.0f);
@@ -85,16 +85,16 @@ void BezierSurface::genSurface(bool printWarning) {
         vertices.push_back(p.y);
         vertices.push_back(p.z);
 
-        normals_vec3.push_back(glm::vec3(0.0f));
+        uvCoords.push_back(u);
+        uvCoords.push_back(v);
       }
     }
 
-    // Indices / Normals
+    // Indices
     for (uint i = 0; i < m_nbPoints_line - 1; i++) {
       for (uint j = 0; j < m_nbPoints_row - 1; j++) {
         int idx = j * m_nbPoints_line + i;
 
-        // Indices
         // Tri 1
         indices.push_back(idx + m_nbPoints_line);
         indices.push_back(idx);
@@ -104,65 +104,24 @@ void BezierSurface::genSurface(bool printWarning) {
         indices.push_back(idx);
         indices.push_back(idx + 1);
         indices.push_back(idx + m_nbPoints_line + 1);
-
-        // Normals
-        glm::vec3 normal;
-        glm::vec3 p1, p2, p3;
-
-        p1.x = vertices[idx + m_nbPoints_line + 0];
-        p1.y = vertices[idx + m_nbPoints_line + 1];
-        p1.z = vertices[idx + m_nbPoints_line + 2];
-
-        p2.x = vertices[idx + 0];
-        p2.y = vertices[idx + 1];
-        p2.z = vertices[idx + 2];
-
-        p3.x = vertices[idx + m_nbPoints_line + 1 + 0];
-        p3.y = vertices[idx + m_nbPoints_line + 1 + 1];
-        p3.z = vertices[idx + m_nbPoints_line + 1 + 2];
-
-        glm::vec3 v1 = p3 - p1;
-        glm::vec3 v2 = p2 - p1;
-
-        normal = glm::cross(v2, v1);
-        normal = glm::normalize(normal);
-
-        normals_vec3[idx] += normal;
-        normals_vec3[idx + 1] += normal;
-        normals_vec3[idx + m_nbPoints_line] += normal;
-        normals_vec3[idx + m_nbPoints_line + 1] += normal;
       }
     }
 
-    // Normals finalize
-    // std::cout << "size = " << normals_vec3.size() << std::endl;
-    // for (uint j = 0; j < m_nbPoints_row; j++) {
-    //   for (uint i = 0; i < m_nbPoints_line; i++) {
-
-    //     glm::vec3 n = glm::normalize(normals_vec3[j * m_nbPoints_line + i]);
-    //     n = glm::normalize(n);
-
-    //     // std::cout << "n = { " << n.x << ", " << n.y << ", " << n.y << " }"
-    //     //           << std::endl;
-
-    //     normals.push_back(n.x);
-    //     normals.push_back(n.y);
-    //     normals.push_back(n.z);
-    //   }
-    // }
+    // Normals
     normals.resize(vertices.size(), 0.0f);
 
     for (uint i = 0; i < indices.size(); i += 3) {
+
       glm::vec3 p1, p2, p3;
-      p1.x = vertices[indices[i + 0] + 0];
-      p1.y = vertices[indices[i + 0] + 1];
-      p1.z = vertices[indices[i + 0] + 2];
-      p2.x = vertices[indices[i + 1] + 0];
-      p2.y = vertices[indices[i + 1] + 1];
-      p2.z = vertices[indices[i + 1] + 2];
-      p3.x = vertices[indices[i + 2] + 0];
-      p3.y = vertices[indices[i + 2] + 1];
-      p3.z = vertices[indices[i + 2] + 2];
+      p1.x = vertices[indices[i + 0] * 3 + 0];
+      p1.y = vertices[indices[i + 0] * 3 + 1];
+      p1.z = vertices[indices[i + 0] * 3 + 2];
+      p2.x = vertices[indices[i + 1] * 3 + 0];
+      p2.y = vertices[indices[i + 1] * 3 + 1];
+      p2.z = vertices[indices[i + 1] * 3 + 2];
+      p3.x = vertices[indices[i + 2] * 3 + 0];
+      p3.y = vertices[indices[i + 2] * 3 + 1];
+      p3.z = vertices[indices[i + 2] * 3 + 2];
 
       glm::vec3 v1, v2;
       v1 = p2 - p1;
@@ -171,15 +130,15 @@ void BezierSurface::genSurface(bool printWarning) {
       glm::vec3 n = glm::cross(v1, v2);
       n = glm::normalize(n);
 
-      normals[indices[i + 0] + 0] += n.x;
-      normals[indices[i + 0] + 1] += n.y;
-      normals[indices[i + 0] + 2] += n.z;
-      normals[indices[i + 1] + 0] += n.x;
-      normals[indices[i + 1] + 1] += n.y;
-      normals[indices[i + 1] + 2] += n.z;
-      normals[indices[i + 2] + 0] += n.x;
-      normals[indices[i + 2] + 1] += n.y;
-      normals[indices[i + 2] + 2] += n.z;
+      normals[indices[i + 0] * 3 + 0] += n.x;
+      normals[indices[i + 0] * 3 + 1] += n.y;
+      normals[indices[i + 0] * 3 + 2] += n.z;
+      normals[indices[i + 1] * 3 + 0] += n.x;
+      normals[indices[i + 1] * 3 + 1] += n.y;
+      normals[indices[i + 1] * 3 + 2] += n.z;
+      normals[indices[i + 2] * 3 + 0] += n.x;
+      normals[indices[i + 2] * 3 + 1] += n.y;
+      normals[indices[i + 2] * 3 + 2] += n.z;
     }
 
     for (uint i = 0; i < normals.size(); i += 3) {
@@ -197,6 +156,7 @@ void BezierSurface::genSurface(bool printWarning) {
     mesh->set_vertices(vertices);
     mesh->set_indices(indices, GL_TRIANGLES);
     mesh->set_normals(normals);
+    mesh->set_uvCoords(uvCoords);
 
   } else if (printWarning) {
     std::cout

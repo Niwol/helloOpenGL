@@ -5,5 +5,6 @@ in vec3 normal;
 out vec4 fragColor;
 
 void main() {
-    fragColor = vec4(normal * 0.5 + 0.5, 1.0);
+    vec3 n = gl_FrontFacing ? normal : -normal;
+    fragColor = vec4(n * 0.5 + 0.5, 1.0);
 }
