@@ -80,6 +80,15 @@ void Renderer::draw() {
       sp->setVec3(pl->m_name + ".diffuse", pl->m_diffuse);
       sp->setVec3(pl->m_name + ".specular", pl->m_specular);
     }
+    std::cout << "Light ambient = { " << pl->m_ambient.x << ", "
+              << pl->m_ambient.y << ", " << pl->m_ambient.z << " }"
+              << std::endl;
+    std::cout << "Light diffuse = { " << pl->m_diffuse.x << ", "
+              << pl->m_diffuse.y << ", " << pl->m_diffuse.z << " }"
+              << std::endl;
+    std::cout << "Light specular = { " << pl->m_specular.x << ", "
+              << pl->m_specular.y << ", " << pl->m_specular.z << " }"
+              << std::endl;
   }
 
   // Drawing render objects

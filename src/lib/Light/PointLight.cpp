@@ -5,7 +5,7 @@ PointLight::PointLight(std::string name) : m_name{name} {
   m_position = glm::vec3(0.0f);
 
   // Light color
-  m_diffuse = glm::vec3(0.1f);
+  m_ambient = glm::vec3(0.1f);
   m_diffuse = glm::vec3(0.5f);
   m_specular = glm::vec3(1.0f);
 

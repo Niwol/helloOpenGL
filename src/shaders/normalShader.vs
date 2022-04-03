@@ -13,4 +13,5 @@ void main() {
     // gl_Position = vec4(in_position, 1.0);
 
     normal = mat3(transpose(inverse(model))) * in_normal;
+    // normal = in_normal;
 }

@@ -260,6 +260,7 @@ bool BezierDemo::keyboard(unsigned char k) {
     m_bezierSurface->get_ro_surface()->setShaderProgram(m_brdfShaderProgram);
     return true;
   case 'x':
+    m_bezierSurface->get_ro_surface()->setMaterial(m_colorMaterial);
     m_bezierSurface->get_ro_surface()->setShaderProgram(m_shaderProgram);
     return true;
 

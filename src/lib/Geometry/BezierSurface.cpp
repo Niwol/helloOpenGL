@@ -17,10 +17,17 @@ void BezierSurface::transform(glm::mat4 transform) {
 }
 
 void BezierSurface::addLine(std::vector<glm::vec3> points) {
+  auto m = std::make_shared<Material>();
+  m->diffuse = glm::vec3(0.2f, 0.2f, 0.5f);
+  m->specular = glm::vec3(0.5f, 0.5f, 0.5f);
+  m->shininess = 32;
+  m->isTextureMaterial = false;
+
   for (auto &p : points) {
     m_controlPoints.push_back(p);
     auto ro = std::make_shared<RenderObject>();
     ro->getMesh()->to_cube();
+    ro->setMaterial(m);
 
     auto t = glm::mat4(1.0f);
     t = glm::translate(t, p);
