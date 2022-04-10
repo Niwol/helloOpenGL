@@ -15,14 +15,27 @@ public:
   Renderer(int width = 500, int height = 500);
   ~Renderer();
 
+  /**
+   * Adds the render object to the renderer
+   */
   void addRenderObject(std::shared_ptr<RenderObject> ro,
                        bool printWarning = false);
+
+  /**
+   * Removes the render object from the renderer
+   */
   void removeRenderObject(std::shared_ptr<RenderObject> ro,
                           bool printWarning = false);
 
+  /**
+   * Adds the point light to the renderer
+   */
   void addPointLight(std::shared_ptr<PointLight> pointLight,
                      bool printWarning = false);
 
+  /**
+   * Removes the point light from the renderer
+   */
   void removePointLight(std::shared_ptr<PointLight> pointLight,
                         bool printWarning = false);
 

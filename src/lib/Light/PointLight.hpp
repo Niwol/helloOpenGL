@@ -2,19 +2,38 @@
 
 #include "glm/glm.hpp"
 #include "lib/RenderObject.hpp"
+#include "lib/moveable.hpp"
 
-class PointLight {
+class PointLight : public Moveable {
   friend class Renderer;
 
 public:
   PointLight(std::string name = "pointLight");
 
-  void move(glm::vec3 direction);
+  /**
+   * Moves the point light in the direction given by `direction`
+   */
+  void move(glm::vec3 direction, uint index);
+
+  /**
+   * Sets the point lights position
+   */
   void setPosition(glm::vec3 position);
+
+  /**
+   * Sets the point lights color
+   */
   void setColor(glm::vec3 color);
 
+  /**
+   * Adds the shader program to the point light. The point light will be used in
+   * this shader program
+   */
   void addShaderProgram(std::shared_ptr<ShaderProgram> sp);
 
+  /**
+   * Gets the point light render object, a cube by default
+   */
   inline std::shared_ptr<RenderObject> getRenderObject() {
     return m_renderObject;
   }

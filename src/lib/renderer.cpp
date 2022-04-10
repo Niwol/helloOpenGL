@@ -71,24 +71,22 @@ void Renderer::draw() {
       glm::radians(45.0f), float(m_width) / float(m_height), 0.1f, 100.0f);
 
   // Setting lights in their shader programs
+  int i = 0;
   for (auto &pair : m_pointLights) {
     auto pl = pair.second;
     for (auto &sp : pl->m_shaderPrograms) {
       sp->use();
-      sp->setVec3(pl->m_name + ".position", pl->m_position);
-      sp->setVec3(pl->m_name + ".ambient", pl->m_ambient);
-      sp->setVec3(pl->m_name + ".diffuse", pl->m_diffuse);
-      sp->setVec3(pl->m_name + ".specular", pl->m_specular);
+      sp->setVec3("pointLights[" + std::to_string(i) + "].position",
+                  pl->m_position);
+      sp->setVec3("pointLights[" + std::to_string(i) + "].ambient",
+                  pl->m_ambient);
+      sp->setVec3("pointLights[" + std::to_string(i) + "].diffuse",
+                  pl->m_diffuse);
+      sp->setVec3("pointLights[" + std::to_string(i) + "].specular",
+                  pl->m_specular);
+      sp->setInt("nbPointLights", i + 1);
     }
-    std::cout << "Light ambient = { " << pl->m_ambient.x << ", "
-              << pl->m_ambient.y << ", " << pl->m_ambient.z << " }"
-              << std::endl;
-    std::cout << "Light diffuse = { " << pl->m_diffuse.x << ", "
-              << pl->m_diffuse.y << ", " << pl->m_diffuse.z << " }"
-              << std::endl;
-    std::cout << "Light specular = { " << pl->m_specular.x << ", "
-              << pl->m_specular.y << ", " << pl->m_specular.z << " }"
-              << std::endl;
+    i++;
   }
 
   // Drawing render objects
@@ -123,6 +121,8 @@ void Renderer::draw() {
         } else {
           shaderProgram->setVec3("material.diffuse", m->diffuse);
           shaderProgram->setVec3("material.specular", m->specular);
+          shaderProgram->setFloat("material.roughness", m->roughness);
+          shaderProgram->setFloat("material.metallic", m->metallic);
         }
       }
 

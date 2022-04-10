@@ -4,11 +4,12 @@
 #include <vector>
 
 #include "lib/RenderObject.hpp"
+#include "lib/moveable.hpp"
 #include "lib/renderer.hpp"
 
 #include "opengl_stuff.h"
 
-class BezierSurface {
+class BezierSurface : public Moveable {
 public:
   BezierSurface(uint nbPoints_line = 50, uint nbPoints_row = 50);
   ~BezierSurface();
@@ -19,16 +20,45 @@ public:
    */
   void transform(glm::mat4 transform);
 
-  void addLine(std::vector<glm::vec3> points);
+  /**
+   * Adds a line of control points.
+   * The line must be the same length than the first line added.
+   */
+  void addLine(std::vector<glm::vec3> points, bool bGenSurface = false);
+
+  /**
+   * Sets the position of the control point at `index`
+   */
   void setPoint(glm::vec3 position, uint index);
-  void movePoint(glm::vec3 position, uint index);
 
-  inline int get_nbRows() { return m_controlPoints.size(); }
-  inline int get_nbLines() { return m_controlPoints.size(); }
+  /**
+   * Moves the control point at `index` in the direction given by `direction`
+   */
+  void move(glm::vec3 direction, uint index);
 
+  /**
+   * Returns the number of rows in the control point grid
+   */
+  inline int get_nbRows() { return m_nbRows; }
+
+  /**
+   * Returns the number of lines in the control point grid
+   */
+  inline int get_nbLines() { return m_nbLines; }
+
+  /**
+   * Generates the surface
+   */
   void genSurface(bool printWarning = false);
 
+  /**
+   * Gets the surface render object
+   */
   inline std::shared_ptr<RenderObject> get_ro_surface() { return m_RO_surface; }
+
+  /**
+   * Gets a vector with all the control point render objects
+   */
   inline std::vector<std::shared_ptr<RenderObject>> get_ro_controlPoints() {
     return m_ROs_controlPoints;
   }

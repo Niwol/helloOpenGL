@@ -50,13 +50,13 @@ BezierDemo::BezierDemo(int width, int height)
     std::cout << "Abord" << std::endl;
     exit(1);
   }
-
   // ********************  Shader program  ********************
   // **********************************************************
 
   // ****************************************************
   // ********************  Material  ********************
   m_colorMaterial = std::make_shared<Material>();
+  m_brdfMaterial = std::make_shared<Material>();
   m_textureMaterial = std::make_shared<Material>();
 
   // Color material
@@ -64,6 +64,11 @@ BezierDemo::BezierDemo(int width, int height)
   m_colorMaterial->specular = glm::vec3(0.5f);
   m_colorMaterial->shininess = 32;
   m_colorMaterial->isTextureMaterial = false;
+
+  // brdf material
+  m_brdfMaterial->roughness = 0.5f;
+  m_brdfMaterial->metallic = 0.2f;
+  m_brdfMaterial->diffuse = glm::vec3(0.7f, 0.3f, 0.5f);
 
   // Texture Material
   m_textureMaterial->isTextureMaterial = true;
@@ -88,11 +93,13 @@ BezierDemo::BezierDemo(int width, int height)
   // ********************************************************
   // ********************  Bezier curve  ********************
   m_bezierCurve = std::make_shared<BezierCurve>();
+  m_bezierCurve_sl = std::make_shared<BezierCurve>(true);
 
   m_bezierCurve->addPoint(glm::vec3(-1.0f, -0.5f, 0.0f));
   m_bezierCurve->addPoint(glm::vec3(-0.25f, 1.0f, 0.0f));
   m_bezierCurve->addPoint(glm::vec3(0.25f, -0.5f, 0.0f));
   m_bezierCurve->addPoint(glm::vec3(1.0f, 1.0f, 0.0f));
+  m_bezierCurve->genCurve();
 
   m_renderer->addRenderObject(m_bezierCurve->get_ro_curve());
   m_renderer->addRenderObject(m_bezierCurve->get_ro_controlPolynom());
@@ -102,6 +109,24 @@ BezierDemo::BezierDemo(int width, int height)
 
   glm::vec3 translation = glm::vec3(-2.0f, 0.0f, -5.0f);
   m_bezierCurve->transform(glm::translate(glm::mat4(1.0f), translation));
+
+  m_bezierCurve_sl->addPoint(glm::vec3(-1.0f, -0.5f, 0.0f));
+  m_bezierCurve_sl->addPoint(glm::vec3(-0.25f, 1.0f, 0.0f));
+  m_bezierCurve_sl->addPoint(glm::vec3(0.25f, -0.5f, 0.0f));
+  m_bezierCurve_sl->addPoint(glm::vec3(1.0f, 1.0f, 0.0f));
+  m_bezierCurve_sl->genCurve();
+
+  m_renderer->addRenderObject(m_bezierCurve_sl->get_ro_curve());
+  m_renderer->addRenderObject(m_bezierCurve_sl->get_ro_controlPolynom());
+
+  m_bezierCurve_sl->get_ro_curve()->setShaderProgram(m_shaderProgram);
+  m_bezierCurve_sl->get_ro_controlPolynom()->setShaderProgram(m_shaderProgram);
+
+  translation = glm::vec3(2.0f, 0.0f, -5.0f);
+  m_bezierCurve_sl->transform(glm::translate(glm::mat4(1.0f), translation));
+
+  m_objects.push_back(m_bezierCurve.get());
+  m_objects.push_back(m_bezierCurve_sl.get());
   // ********************  Bezier curve  ********************
   // ********************************************************
 
@@ -127,12 +152,14 @@ BezierDemo::BezierDemo(int width, int height)
       glm::vec3(0.3f, -0.2f, -0.3f),
       glm::vec3(1.0f, 0.2f, -0.3f),
   });
-  m_bezierSurface->addLine({
-      glm::vec3(-1.0f, 0.5f, -1.0f),
-      glm::vec3(-0.3f, -0.5f, -1.0f),
-      glm::vec3(0.3f, -0.5f, -1.0f),
-      glm::vec3(1.0f, 0.5f, -1.0f),
-  });
+  m_bezierSurface->addLine(
+      {
+          glm::vec3(-1.0f, 0.5f, -1.0f),
+          glm::vec3(-0.3f, -0.5f, -1.0f),
+          glm::vec3(0.3f, -0.5f, -1.0f),
+          glm::vec3(1.0f, 0.5f, -1.0f),
+      },
+      true);
 
   for (auto &ro : m_bezierSurface->get_ro_controlPoints()) {
     ro->setShaderProgram(m_shaderProgram);
@@ -142,12 +169,19 @@ BezierDemo::BezierDemo(int width, int height)
   m_bezierSurface->get_ro_surface()->setMaterial(m_colorMaterial);
   m_bezierSurface->get_ro_surface()->setShaderProgram(m_shaderProgram);
   m_renderer->addRenderObject(m_bezierSurface->get_ro_surface());
+
+  m_objects.push_back(m_bezierSurface.get());
   // ********************  Bezier surface  ********************
   // **********************************************************
 
   // **************************************************
   // ********************  Lights  ********************
   m_light = std::make_shared<PointLight>();
+  m_keyLight = std::make_shared<PointLight>();
+  m_fillLight = std::make_shared<PointLight>();
+  m_backLight = std::make_shared<PointLight>();
+
+  // scene light
   m_light->setPosition(glm::vec3(-0.7f, 1.0f, -0.5f));
 
   m_light->getRenderObject()->setShaderProgram(m_shaderProgram);
@@ -157,6 +191,36 @@ BezierDemo::BezierDemo(int width, int height)
 
   m_renderer->addRenderObject(m_light->getRenderObject());
   m_renderer->addPointLight(m_light);
+
+  m_objects.push_back(m_light.get());
+
+  // key light
+  m_keyLight->getRenderObject()->setShaderProgram(m_shaderProgram);
+  m_keyLight->addShaderProgram(m_simpleLightShaderProgram);
+  m_keyLight->addShaderProgram(m_textureShaderProgram);
+  m_keyLight->addShaderProgram(m_brdfShaderProgram);
+
+  // m_renderer->addRenderObject(m_keyLight->getRenderObject());
+  m_renderer->addPointLight(m_keyLight);
+
+  // fill light
+  m_fillLight->getRenderObject()->setShaderProgram(m_shaderProgram);
+  m_fillLight->addShaderProgram(m_simpleLightShaderProgram);
+  m_fillLight->addShaderProgram(m_textureShaderProgram);
+  m_fillLight->addShaderProgram(m_brdfShaderProgram);
+
+  // m_renderer->addRenderObject(m_fillLight->getRenderObject());
+  m_renderer->addPointLight(m_fillLight);
+
+  // back light
+  m_backLight->getRenderObject()->setShaderProgram(m_shaderProgram);
+  m_backLight->addShaderProgram(m_simpleLightShaderProgram);
+  m_backLight->addShaderProgram(m_textureShaderProgram);
+  m_backLight->addShaderProgram(m_brdfShaderProgram);
+
+  // m_renderer->addRenderObject(m_backLight->getRenderObject());
+  m_renderer->addPointLight(m_backLight);
+
   // ********************  Lights  ********************
   // **************************************************
 
@@ -174,6 +238,9 @@ BezierDemo::BezierDemo(int width, int height)
   m_camera->setviewport(glm::vec4(0.f, 0.f, _width, _height));
 
   m_renderer->setCamera(m_camera);
+
+  // Lights
+  updateLightPositions();
   // ********************  Camera  ********************
   // **************************************************
 
@@ -196,18 +263,33 @@ void BezierDemo::mouseclick(int button, float xpos, float ypos) {
 
 void BezierDemo::mousemove(float xpos, float ypos) {
   m_camera->processmousemovement(m_mouseButton, xpos, ypos, true);
+  updateLightPositions();
 }
 
 void BezierDemo::mousewheel(float delta) {
   m_camera->processmousescroll(delta);
+  updateLightPositions();
 }
 
 void BezierDemo::keyboardmove(int key, double time) {
   m_camera->processkeyboard(Camera_Movement(key), time);
+  updateLightPositions();
 }
 
 bool BezierDemo::keyboard(unsigned char k) {
-  int nbPoints = m_bezierCurve->get_nbControlPoints();
+  int lineSize = 0;
+  int rowSize = 0;
+
+  BezierCurve *curve = dynamic_cast<BezierCurve *>(m_objects[m_selectedObject]);
+  BezierSurface *surface =
+      dynamic_cast<BezierSurface *>(m_objects[m_selectedObject]);
+  if (curve) {
+    lineSize = curve->get_nbControlPoints();
+  } else if (surface) {
+    // The size of a ligne is the number of rows, same the other way around
+    lineSize = surface->get_nbRows();
+    rowSize = surface->get_nbLines();
+  }
 
   switch (k) {
   case 'p':
@@ -217,29 +299,91 @@ bool BezierDemo::keyboard(unsigned char k) {
     m_renderer->setCamera(m_camera);
     return true;
 
-  case 'a':
-    m_selectedPoint = (m_selectedPoint - 1 + nbPoints) % nbPoints;
-    return true;
-  case 'e':
-    m_selectedPoint = (m_selectedPoint + 1) % nbPoints;
+  // Object / Control point selection
+  case 'r':
+    m_selectedObject =
+        (m_selectedObject - 1 + m_objects.size()) % m_objects.size();
+    m_selectedPoint = 0;
+    return false;
+  case 'y':
+    m_selectedObject = (m_selectedObject + 1) % m_objects.size();
+    m_selectedPoint = 0;
+    return false;
+
+  case 't':
+    if (surface)
+      m_selectedPoint = (m_selectedPoint + rowSize) % (rowSize * lineSize);
+    return false;
+  case 'g':
+    if (surface)
+      m_selectedPoint = (m_selectedPoint - rowSize + rowSize * lineSize) %
+                        (rowSize * lineSize);
+    return false;
+  case 'f':
+    if (surface)
+      m_selectedPoint =
+          (m_selectedPoint - 1 + rowSize * lineSize) % (rowSize * lineSize);
+    else if (curve)
+      m_selectedPoint = (m_selectedPoint - 1 + lineSize) % lineSize;
+    return false;
+  case 'h':
+    if (surface)
+      m_selectedPoint = (m_selectedPoint + 1) % (rowSize * lineSize);
+    else if (curve)
+      m_selectedPoint = (m_selectedPoint - 1) % lineSize;
+    return false;
+
+  // Object movement
+  case 'z':
+    m_objects[m_selectedObject]->move(glm::vec3(0.0f, 0.0f, -0.1f),
+                                      m_selectedPoint);
+    if (surface)
+      surface->genSurface();
+    else if (curve)
+      curve->genCurve();
     return true;
   case 'q':
-    m_light->move(glm::vec3(-0.1f, 0.0f, 0.0f));
-    m_bezierCurve->movePoint(glm::vec3(-0.1f, 0.0f, 0.0f), m_selectedPoint);
-    return true;
-  case 'd':
-    m_light->move(glm::vec3(0.1f, 0.0f, 0.0f));
-    m_bezierCurve->movePoint(glm::vec3(0.1f, 0.0f, 0.0f), m_selectedPoint);
-    return true;
-  case 'z':
-    m_light->move(glm::vec3(0.0f, 0.0f, -0.1f));
-    m_bezierCurve->movePoint(glm::vec3(0.0f, 0.1f, 0.0f), m_selectedPoint);
+    m_objects[m_selectedObject]->move(glm::vec3(-0.1f, 0.0f, 0.0f),
+                                      m_selectedPoint);
+    if (surface)
+      surface->genSurface();
+    else if (curve)
+      curve->genCurve();
     return true;
   case 's':
-    m_light->move(glm::vec3(0.0f, 0.0f, 0.1f));
-    m_bezierCurve->movePoint(glm::vec3(0.0f, -0.1f, 0.0f), m_selectedPoint);
+    m_objects[m_selectedObject]->move(glm::vec3(0.0f, 0.0f, 0.1f),
+                                      m_selectedPoint);
+    if (surface)
+      surface->genSurface();
+    else if (curve)
+      curve->genCurve();
+    return true;
+  case 'd':
+    m_objects[m_selectedObject]->move(glm::vec3(0.1f, 0.0f, 0.0f),
+                                      m_selectedPoint);
+    if (surface)
+      surface->genSurface();
+    else if (curve)
+      curve->genCurve();
+    return true;
+  case 'a':
+    m_objects[m_selectedObject]->move(glm::vec3(0.0f, -0.1f, 0.0f),
+                                      m_selectedPoint);
+    if (surface)
+      surface->genSurface();
+    else if (curve)
+      curve->genCurve();
+    return true;
+  case 'e':
+    m_objects[m_selectedObject]->move(glm::vec3(0.0f, 0.1f, 0.0f),
+                                      m_selectedPoint);
+    if (surface)
+      surface->genSurface();
+    else if (curve)
+      curve->genCurve();
     return true;
 
+  // Shader object selection
   case 'n':
     m_bezierSurface->get_ro_surface()->setShaderProgram(m_normalShaderProgram);
     return true;
@@ -256,7 +400,7 @@ bool BezierDemo::keyboard(unsigned char k) {
         m_simpleLightShaderProgram);
     return true;
   case 'm':
-    m_bezierSurface->get_ro_surface()->setMaterial(m_colorMaterial);
+    m_bezierSurface->get_ro_surface()->setMaterial(m_brdfMaterial);
     m_bezierSurface->get_ro_surface()->setShaderProgram(m_brdfShaderProgram);
     return true;
   case 'x':
@@ -264,12 +408,52 @@ bool BezierDemo::keyboard(unsigned char k) {
     m_bezierSurface->get_ro_surface()->setShaderProgram(m_shaderProgram);
     return true;
 
+  // brdf material
+  case 'i':
+    m_brdfMaterial->metallic += 0.05f;
+    if (m_brdfMaterial->metallic > 1.0f)
+      m_brdfMaterial->metallic = 1.0f;
+    return true;
+  case 'k':
+    m_brdfMaterial->metallic -= 0.05f;
+    if (m_brdfMaterial->metallic < 0.0f)
+      m_brdfMaterial->metallic = 0.0f;
+    return true;
+  case 'o':
+    m_brdfMaterial->roughness += 0.05f;
+    if (m_brdfMaterial->roughness > 1.0f)
+      m_brdfMaterial->roughness = 1.0f;
+    return true;
+  case 'l':
+    m_brdfMaterial->roughness -= 0.05f;
+    if (m_brdfMaterial->roughness < 0.0f)
+      m_brdfMaterial->roughness = 0.0f;
+    return true;
+
   default:
     return false;
   }
 }
 
-void BezierDemo::update() {}
+void BezierDemo::updateLightPositions() {
+
+  glm::vec3 front = m_camera->getFront();
+
+  glm::vec3 up = m_camera->getUp();
+  glm::vec3 right = glm::normalize(glm::cross(front, up));
+
+  front.y = 0;
+  front = glm::normalize(front);
+
+  right.y = 0;
+  right = glm::normalize(right);
+
+  m_keyLight->setPosition(m_camera->position() +
+                          glm::vec3(0.0f, 1.0f, 0.0f) * 5.0f);
+  m_fillLight->setPosition(m_camera->position() + right * (-2.0f) +
+                           front * 1.0f);
+  m_backLight->setPosition(m_camera->position() + front * 5.0f);
+}
 
 void BezierDemo::draw() {
   OpenGLDemo::draw();

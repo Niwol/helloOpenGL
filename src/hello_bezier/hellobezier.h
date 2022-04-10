@@ -9,6 +9,7 @@
 #include "lib/RenderObject.hpp"
 #include "lib/ShaderProgram.hpp"
 #include "lib/camera.hpp"
+#include "lib/moveable.hpp"
 #include "lib/renderer.hpp"
 
 #include <memory>
@@ -28,7 +29,7 @@ public:
   virtual void keyboardmove(int key, double time) override;
   virtual bool keyboard(unsigned char k) override;
 
-  void update();
+  void updateLightPositions();
 
   void draw() override;
 
@@ -43,16 +44,24 @@ private:
 
   // Bezier Geometry
   std::shared_ptr<BezierCurve> m_bezierCurve;
+  std::shared_ptr<BezierCurve> m_bezierCurve_sl;
   std::shared_ptr<BezierSurface> m_bezierSurface;
+
+  // Object manipulation
+  std::vector<Moveable *> m_objects;
   int m_selectedPoint;
   int m_selectedObject;
 
   // Materials
   std::shared_ptr<Material> m_colorMaterial;
+  std::shared_ptr<Material> m_brdfMaterial;
   std::shared_ptr<Material> m_textureMaterial;
 
   // Lights
   std::shared_ptr<PointLight> m_light;
+  std::shared_ptr<PointLight> m_keyLight;
+  std::shared_ptr<PointLight> m_fillLight;
+  std::shared_ptr<PointLight> m_backLight;
 
   // Camera
   using CameraSelector = std::function<Camera *()>;

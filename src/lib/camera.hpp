@@ -39,6 +39,9 @@ public:
   // input on the vertical wheel-axis
   virtual void processmousescroll(GLfloat yoffset);
 
+  inline glm::vec3 getFront() { return _front; }
+  inline glm::vec3 getUp() { return _up; }
+
 protected:
   glm::vec3 _position;
   glm::vec3 _front;

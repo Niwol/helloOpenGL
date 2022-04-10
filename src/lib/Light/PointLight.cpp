@@ -20,7 +20,7 @@ PointLight::PointLight(std::string name) : m_name{name} {
   m->diffuse = glm::vec3(1.0f, 1.0f, 1.0f);
 }
 
-void PointLight::move(glm::vec3 direction) {
+void PointLight::move(glm::vec3 direction, uint) {
   m_position += direction;
   updateTransform();
 }

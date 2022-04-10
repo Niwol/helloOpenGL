@@ -1,5 +1,7 @@
 #version 410 core
 
+#define MAX_POINT_LIGHTS 10
+
 // Structures
 struct PointLight {
     vec3 position;
@@ -28,13 +30,26 @@ out vec4 fragColor;
 uniform vec3 viewPos;
 
 // Lights
-uniform PointLight pointLight;
+uniform PointLight pointLights[MAX_POINT_LIGHTS];
+uniform int nbPointLights;
 
 // Objects
 uniform Material material;
 
-void main() {
+// Functions
+vec3 calculateLightContribution(PointLight pointLight);
 
+void main() {
+    vec3 result = vec3(0.0);
+
+    for(int i = 0; i < nbPointLights; i++)
+        result += calculateLightContribution(pointLights[i]);
+
+    fragColor = vec4(result, 1.0);
+}
+
+vec3 calculateLightContribution(PointLight pointLight) {
+    
     vec3 normal = gl_FrontFacing ? normal : -normal;
 
     // ambient
@@ -53,6 +68,6 @@ void main() {
     vec3 specular = vec3(texture(material.specular, texCoords)) * spec * pointLight.specular;
 
 
-    fragColor = vec4(ambient + diffuse + specular, 1.0);
-    // fragColor = texture(diffuseTexture, texCoords);
+    return ambient + diffuse + specular;
 }
+
