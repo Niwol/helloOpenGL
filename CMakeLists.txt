@@ -14,6 +14,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
 find_package(Qt5 COMPONENTS OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
 
 find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
 
@@ -66,6 +67,6 @@ add_executable(helloopenGL
                ${folder_ui}
                )
 
-set(EXT_LIBS Qt5::OpenGL ${OPENGL_LIBRARIES})
+set(EXT_LIBS glfw Qt5::OpenGL ${OPENGL_LIBRARIES})
 
 target_link_libraries(helloopenGL ${EXT_LIBS} )
