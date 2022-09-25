@@ -2,9 +2,12 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+
+
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height); 
 
-int main(int argc, char *argv[]) {
+int main(int, char**) {
 
   std::cout << "Hello OpenGL!" << std::endl;
 
@@ -36,7 +39,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow*, int width, int height) {
   glViewport(0, 0, width, height);
 }
 

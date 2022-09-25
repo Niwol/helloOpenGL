@@ -2,8 +2,8 @@ project(helloopenGL)
 
 ############################################
 # Configure CMake and GCC flags
-cmake_minimum_required(VERSION 2.8.9) # Minimal version compatible QT5
-CMAKE_POLICY(SET CMP0043 NEW) # This will silence the Cmake Warning "Policy CMP0043 is not set"
+cmake_minimum_required(VERSION 3.22.1) # Minimal version compatible QT5
+CMAKE_POLICY(SET CMP0072 NEW) # This will silence the Cmake Warning "Policy CMP0043 is not set"
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED OFF)
