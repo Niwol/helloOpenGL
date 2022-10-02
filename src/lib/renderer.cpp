@@ -99,9 +99,9 @@ void Renderer::draw() {
     if (shaderProgram) {
       shaderProgram->use();
       shaderProgram->setMat4("model", ro->getModelMatrix());
-      shaderProgram->setMat4("view", m_camera->viewmatrix());
+      shaderProgram->setMat4("view", m_camera->getViewMatrix());
       shaderProgram->setMat4("projection", perspective);
-      shaderProgram->setVec3("viewPos", m_camera->position());
+      shaderProgram->setVec3("viewPos", m_camera->getPosition());
 
       std::shared_ptr<Material> m;
       if (m = ro->getMaterial()) {
@@ -136,3 +136,32 @@ void Renderer::draw() {
   }
   glBindVertexArray(0);
 }
+
+void Renderer::render(const Scene& scene, const Camera& camera) {
+
+  glm::mat4 perspective = glm::perspective(
+      glm::radians(45.0f), float(m_width) / float(m_height), 0.1f, 100.0f);
+
+  for (auto& ro : scene.objects) {
+    auto sp = ro->getShaderProgram();
+
+    if(sp) {
+      sp->use();
+      sp->setMat4("model", ro->getModelMatrix());
+      sp->setMat4("view", camera.getViewMatrix());
+      sp->setMat4("projection", perspective);
+      sp->setVec3("viewPos", camera.getPosition());
+        
+      auto mesh = ro->getMesh();
+      glBindVertexArray(mesh->m_VAO);
+      glDrawElements(mesh->m_mode, mesh->m_nbIndices, GL_UNSIGNED_INT, 0);
+    } else {
+      std::cout
+          << "Renderer::draw: WARNING: render object has no shader program set"
+          << std::endl;
+    }
+  }
+
+  glBindVertexArray(0);
+}
+

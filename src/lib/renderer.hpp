@@ -3,8 +3,8 @@
 #include "Light/PointLight.hpp"
 #include "RenderObject.hpp"
 #include "ShaderProgram.hpp"
-#include "camera.hpp"
-#include "opengl_stuff.h"
+#include "Camera.hpp"
+#include "Scene.hpp"
 
 #include <map>
 #include <memory>
@@ -53,6 +53,8 @@ public:
    * Sets up all shaders and draw all render objects attached to the renderer
    */
   void draw();
+
+  void render(const Scene& scene, const Camera& camera);
 
 private:
   std::map<uint, std::shared_ptr<RenderObject>> m_renderObjects;
