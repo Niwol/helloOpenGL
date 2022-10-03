@@ -4,6 +4,8 @@
 #include "lib/renderer.hpp"
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
+#include <cmath>
+#include <cstdio>
 #include <memory>
 
 Application::Application() {}
@@ -97,16 +99,10 @@ void Application::processInput(float dt)
   if(glfwGetKey(m_window, GLFW_KEY_ESCAPE))
     glfwSetWindowShouldClose(m_window, true);
 
-//  if(glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
-//  {
-//    m_renderFill = !m_renderFill;
-//    
-//    if(m_renderFill)
-//      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//    else
-//      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-//  }
 
+  // **************** Camera movement ****************
+
+  // Movement
   if(glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
     m_camera.move(CameraMovement::FORWARD, dt);
 
@@ -125,5 +121,46 @@ void Application::processInput(float dt)
   if(glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     m_camera.move(CameraMovement::DOWN, dt);
 
+  // Rotation
+
+  if(glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+  {
+    double x, y;
+    glfwGetCursorPos(m_window, &x, &y);
+
+    if(!m_mouseLeftHold)
+    {
+      m_lastMouseX = (int)x;
+      m_lastMouseY = (int)y;
+    }
+
+    int dx = (int)x - m_lastMouseX;
+    int dy = (int)y - m_lastMouseY;
+    m_camera.handleMouseMovement(dx, dy);
+
+    m_lastMouseX = (int)x;
+    m_lastMouseY = (int)y;
+
+    m_mouseLeftHold = true;
+  } else
+    m_mouseLeftHold = false;
+
+  // **************** Draw mode **************** 
+
+  if(glfwGetKey(m_window, GLFW_KEY_Z) == GLFW_PRESS)
+  {
+    if(!m_keyWHold)
+    {
+      m_renderFill = !m_renderFill;
+      
+      if(m_renderFill)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      else
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+
+    m_keyWHold = true;
+  } else
+    m_keyWHold = false;
 }
 

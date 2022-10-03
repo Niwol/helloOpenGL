@@ -37,4 +37,11 @@ private:
 
 
   bool m_renderFill = true;
+
+
+  // Input stuff
+  int m_lastMouseX = 0;
+  int m_lastMouseY = 0;
+  bool m_mouseLeftHold = false;
+  bool m_keyWHold = false;
 };

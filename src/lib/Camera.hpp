@@ -30,6 +30,7 @@ public:
   }
 
   void move(CameraMovement direction, float dt);
+  void handleMouseMovement(int dx, int dy);
 
 private:
   void updateCameraVectors();
@@ -47,4 +48,5 @@ private:
   float m_pitch = 0.0f;
 
   float m_speed = 10.0f;
+  float m_mouseSensitivity = 0.001f;
 };

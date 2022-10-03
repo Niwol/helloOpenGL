@@ -1,4 +1,5 @@
 #include "Camera.hpp"
+#include <cmath>
 #include <cstdio>
 
 Camera::Camera(glm::vec3 position, glm::vec3 worldUp, float yaw, float pitch)
@@ -38,6 +39,22 @@ void Camera::move(CameraMovement direction, float dt)
       m_position -= m_worldUp * vel;
       break;
     }
+}
+
+void Camera::handleMouseMovement(int dx, int dy)
+{
+  float offX = (float)dx * m_mouseSensitivity;
+  float offY = (float)dy * m_mouseSensitivity;
+
+  m_yaw += offX;
+  m_pitch += offY;
+
+  if (m_pitch > M_PI / 2.0f - 0.01f)
+    m_pitch = M_PI / 2.0f - 0.01f;
+  if (m_pitch < -M_PI / 2.0f + 0.01f)
+    m_pitch = -M_PI / 2.0f + 0.01f;
+
+  updateCameraVectors();
 }
 
 void Camera::updateCameraVectors() 
