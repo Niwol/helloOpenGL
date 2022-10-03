@@ -1,11 +1,10 @@
 #pragma once
 
-#include "opengl_stuff.h"
-#include <QOpenGLFunctions_4_1_Core>
-
 #include <string>
 
-class ShaderProgram : public QOpenGLFunctions_4_1_Core {
+#include <src/opengl_stuff.h>
+
+class ShaderProgram {
 public:
   ShaderProgram(std::string vertexPath = "", std::string fragmentPath = "");
   ~ShaderProgram();

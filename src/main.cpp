@@ -1,11 +1,16 @@
-#include "mainwindow.h"
+#include <iostream>
 
-#include <QApplication>
+#include "Application.hpp"
 
-int main(int argc, char *argv[]) {
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
+int main(int, char**) {
 
-    return a.exec();
+  std::cout << "Hello OpenGL!" << std::endl;
+
+  Application app;
+
+  if(app.construct(800, 600))
+    app.run();
+
+  return EXIT_SUCCESS;
 }
+

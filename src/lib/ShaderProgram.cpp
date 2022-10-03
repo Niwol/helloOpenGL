@@ -4,9 +4,6 @@
 #include "lib/ShaderProgram.hpp"
 
 ShaderProgram::ShaderProgram(std::string vertexPath, std::string fragmentPath) {
-
-  initializeOpenGLFunctions();
-
   if (vertexPath != "" && fragmentPath != "") {
     createProgram(vertexPath, fragmentPath);
   } else if (vertexPath != "" && fragmentPath == "") {
