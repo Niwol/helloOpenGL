@@ -1,11 +1,12 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <memory>
-
+#include <Eigen/Dense>
+#include <OpenMesh/Core/Mesh/TriMeshT.hh>
 
 #include "lib/Camera.hpp"
 #include "lib/renderer.hpp"
@@ -37,6 +38,7 @@ private:
 
 
   bool m_renderFill = true;
+  bool m_cullFaces = true;
 
 
   // Input stuff
@@ -44,4 +46,5 @@ private:
   int m_lastMouseY = 0;
   bool m_mouseLeftHold = false;
   bool m_keyWHold = false;
+  bool m_keyCHold = false;
 };

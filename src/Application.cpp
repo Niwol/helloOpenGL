@@ -1,12 +1,6 @@
 #include "Application.hpp"
-#include "lib/RenderObject.hpp"
-#include "lib/ShaderProgram.hpp"
-#include "lib/renderer.hpp"
-#include <GL/gl.h>
-#include <GLFW/glfw3.h>
-#include <cmath>
-#include <cstdio>
-#include <memory>
+#include <Eigen/src/Core/Matrix.h>
+#include <OpenMesh/Core/Mesh/TriMeshT.hh>
 
 Application::Application() {}
 
@@ -44,6 +38,15 @@ bool Application::construct(int width, int height) {
     glViewport(0, 0, width, height);
   });
 
+  glfwSetWindowUserPointer(m_window, this);
+
+  // OpenGL stuff
+  glEnable(GL_DEPTH_TEST);
+
+//  glEnable(GL_CULL_FACE);
+//  glCullFace(GL_BACK);
+//  glFrontFace(GL_CCW);
+
   return true;
 }
 
@@ -68,12 +71,55 @@ void Application::onCreate() {
 
   m_camera = Camera({0.0f, 0.0f, -5.0f});
 
-  auto sp = std::make_shared<ShaderProgram>("../src/shaders/simpleShader.vs",
+   auto sp = std::make_shared<ShaderProgram>("../src/shaders/simpleShader.vs",
                                             "../src/shaders/simpleShader.fs");
 
+   auto normal_sp = 
+     std::make_shared<ShaderProgram>("../src/shaders/normalShader.vs",
+                                     "../src/shaders/normalShader.fs");
+
+  auto mat = std::make_shared<Material>();
+  mat->diffuse = {0.2f, 1.0f, 0.1f};
+
   auto obj = std::make_shared<RenderObject>();
-  obj->getMesh()->to_cube();
-  obj->setShaderProgram(sp);
+  {
+    OpenMesh::IO::Options opt;
+    auto &mesh = obj->getMesh()->m_mesh;
+
+    mesh.request_vertex_normals();
+
+    if(!OpenMesh::IO::read_mesh(mesh, "/home/lowin/Documents/assets/common-3d-test-models/data/stanford-bunny.obj", opt))
+    {
+      std::cout << "Error loading mesh" << std::endl;
+    }
+
+    if(!opt.check(OpenMesh::IO::Options::VertexNormal))
+    {
+      mesh.request_face_normals();
+      mesh.update_normals();
+      mesh.release_face_normals();
+    }
+
+
+//    for(auto v_iter = mesh.vertices().begin();
+//             v_iter != mesh.vertices().end();
+//             v_iter++)
+//    {
+//      auto p = mesh.point(*v_iter);
+//      auto n = mesh.normal(*v_iter);
+//
+//      mesh.set_point(*v_iter, p + n);
+//    }
+  }
+
+  obj->getMesh()->commit2();
+  
+  glm::mat4 t(1.0f);
+  t = glm::scale(t, glm::vec3(10.0f));
+  obj->transform(t);
+
+  obj->setShaderProgram(normal_sp);
+  obj->setMaterial(mat);
 
   m_scene.objects.push_back(obj);
 }
@@ -83,7 +129,7 @@ void Application::onUpdate(float dt) {
   processInput(dt);
 
   glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
   int width, height;
@@ -104,10 +150,10 @@ void Application::processInput(float dt)
 
   // Movement
   if(glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
-    m_camera.move(CameraMovement::FORWARD, dt);
+    m_camera.move(CameraMovement::FORWARD_XZ, dt);
 
   if(glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
-    m_camera.move(CameraMovement::BACKWARD, dt);
+    m_camera.move(CameraMovement::BACKWARD_XZ, dt);
   
   if(glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
     m_camera.move(CameraMovement::LEFT, dt);
@@ -121,8 +167,15 @@ void Application::processInput(float dt)
   if(glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
     m_camera.move(CameraMovement::DOWN, dt);
 
-  // Rotation
+  // Scroll
+  glfwSetScrollCallback(m_window, [](GLFWwindow* window, double, double yoff)
+  {
+    auto app = static_cast<Application*>(glfwGetWindowUserPointer(window));
 
+    app->m_camera.move(CameraMovement::FORWARD, yoff * 0.1f);
+  });
+
+  // Rotation
   if(glfwGetMouseButton(m_window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
   {
     double x, y;
@@ -162,5 +215,22 @@ void Application::processInput(float dt)
     m_keyWHold = true;
   } else
     m_keyWHold = false;
+
+  if(glfwGetKey(m_window, GLFW_KEY_C) == GLFW_PRESS)
+  {
+    if(!m_keyCHold)
+    {
+      m_cullFaces = !m_cullFaces;
+      
+      if(m_cullFaces)
+        glCullFace(GL_FRONT_AND_BACK);
+      else
+        glCullFace(GL_FRONT_AND_BACK);
+
+    }
+
+    m_keyCHold = true;
+  } else
+    m_keyCHold = false;
 }
 

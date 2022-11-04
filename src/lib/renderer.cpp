@@ -104,7 +104,7 @@ void Renderer::draw() {
       shaderProgram->setVec3("viewPos", m_camera->getPosition());
 
       std::shared_ptr<Material> m;
-      if (m = ro->getMaterial()) {
+      if ((m = ro->getMaterial())) {
 
         // Set shader material
         shaderProgram->setInt("material.shininess", m->shininess);
@@ -151,7 +151,31 @@ void Renderer::render(const Scene& scene, const Camera& camera) {
       sp->setMat4("view", camera.getViewMatrix());
       sp->setMat4("projection", perspective);
       sp->setVec3("viewPos", camera.getPosition());
-        
+
+      std::shared_ptr<Material> m;
+      if ((m = ro->getMaterial())) {
+
+        // Set shader material
+        sp->setInt("material.shininess", m->shininess);
+
+        if (m->isTextureMaterial) {
+          glActiveTexture(GL_TEXTURE0);
+          glBindTexture(GL_TEXTURE_2D, m->diffuseTexture->m_textureID);
+          sp->setInt("material.diffuse", 0);
+
+          glActiveTexture(GL_TEXTURE1);
+          glBindTexture(GL_TEXTURE_2D, m->specularTexture->m_textureID);
+          sp->setInt("material.specular", 1);
+
+        } else {
+          sp->setVec3("material.diffuse", m->diffuse);
+          sp->setVec3("material.specular", m->specular);
+          sp->setFloat("material.roughness", m->roughness);
+          sp->setFloat("material.metallic", m->metallic);
+        }
+      }
+
+       
       auto mesh = ro->getMesh();
       glBindVertexArray(mesh->m_VAO);
       glDrawElements(mesh->m_mode, mesh->m_nbIndices, GL_UNSIGNED_INT, 0);

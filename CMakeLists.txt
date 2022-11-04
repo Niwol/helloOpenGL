@@ -17,6 +17,12 @@ find_package(glfw3 REQUIRED)
 
 find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
 
+set(Eigen3_DIR ${CMAKE_SOURCE_DIR}/eigen-3.4.0/cmake)
+find_package(Eigen3 REQUIRED)
+
+set(OpenMesh_DIR ${CMAKE_SOURCE_DIR}/OpenMesh/share/OpenMesh/cmake)
+find_package(OpenMesh REQUIRED)
+
 #OpenGL deprecated on MacosX : remove compilation warning
 add_definitions(-DGL_SILENCE_DEPRECATION -DGLM_FORCE_SILENT_WARNINGS)
 
@@ -39,6 +45,7 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/src
    ${CMAKE_SOURCE_DIR}/glm
    ${CMAKE_SOURCE_DIR}/glad/include
+   ${CMAKE_SOURCE_DIR}/OpenMesh/include
 )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})
@@ -58,7 +65,7 @@ add_executable(helloopenGL
                ${folder_source}
                ${folder_header}
                )
-
-set(EXT_LIBS glfw ${OPENGL_LIBRARIES})
+          
+set(EXT_LIBS Eigen3::Eigen OpenMeshCore glfw ${OPENGL_LIBRARIES})
 
 target_link_libraries(helloopenGL ${EXT_LIBS} )

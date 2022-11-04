@@ -1,9 +1,13 @@
 #pragma once
 
-#include "opengl_stuff.h"
-
 #include <iostream>
 #include <vector>
+
+#include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
+#include <OpenMesh/Core/IO/MeshIO.hh>
+#include "opengl_stuff.h"
+
+typedef OpenMesh::PolyMesh_ArrayKernelT<> MyMesh;
 
 class Mesh {
 public:
@@ -17,6 +21,7 @@ public:
    * Transformes the mesh into a cube
    */
   void to_cube();
+  void to_cube2();
 
   /**
    * Transforms the mesh into a square
@@ -32,6 +37,7 @@ public:
    * Sends all the mesh data to the GPU
    */
   void commit();
+  void commit2();
 
   /**
    * Sets the meshes vertices
@@ -52,6 +58,9 @@ public:
    * Sets the meshes indices
    */
   void set_indices(std::vector<GLuint> indices, int mode);
+
+public:
+  MyMesh m_mesh;
 
 private:
   friend class Renderer;

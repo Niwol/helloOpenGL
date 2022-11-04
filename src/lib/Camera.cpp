@@ -13,14 +13,24 @@ void Camera::move(CameraMovement direction, float dt)
   float vel = m_speed * dt;
   switch (direction) 
   {
+    case FORWARD_XZ:
+      m_position +=
+        glm::normalize(glm::vec3(m_direction.x, 0.0f, m_direction.z)) * vel;
+      break;
+
     case FORWARD:
       m_position +=
+        m_direction * vel;
+      break;
+
+    case BACKWARD_XZ:
+      m_position -=
         glm::normalize(glm::vec3(m_direction.x, 0.0f, m_direction.z)) * vel;
       break;
 
     case BACKWARD:
       m_position -=
-        glm::normalize(glm::vec3(m_direction.x, 0.0f, m_direction.z)) * vel;
+        m_direction * vel;
       break;
 
     case LEFT:
@@ -47,7 +57,7 @@ void Camera::handleMouseMovement(int dx, int dy)
   float offY = (float)dy * m_mouseSensitivity;
 
   m_yaw += offX;
-  m_pitch += offY;
+  m_pitch -= offY;
 
   if (m_pitch > M_PI / 2.0f - 0.01f)
     m_pitch = M_PI / 2.0f - 0.01f;
