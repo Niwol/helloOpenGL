@@ -283,20 +283,20 @@ void Mesh::commit2()
     vertices.push_back(p.data()[1]);
     vertices.push_back(p.data()[2]);
 
-    if(m_mesh.has_vertex_normals())
-    {
-      auto n = m_mesh.normal(*v_iter);
-      normals.push_back(n.data()[0]);
-      normals.push_back(n.data()[1]);
-      normals.push_back(n.data()[2]);
-
-//      int i = normals.size() - 3;
-//      float norm = glm::length(glm::vec3(normals[i], normals[i+1], normals[i+2]));
-//      std::cout << normals[i + 0] << " " 
-//                << normals[i + 1] << " " 
-//                << normals[i + 2] << std::endl;
-//      std::cout << norm << std::endl;
-    }
+//    if(m_mesh.has_vertex_normals())
+//    {
+//      auto n = m_mesh.normal(*v_iter);
+//      normals.push_back(n.data()[0]);
+//      normals.push_back(n.data()[1]);
+//      normals.push_back(n.data()[2]);
+//
+////      int i = normals.size() - 3;
+////      float norm = glm::length(glm::vec3(normals[i], normals[i+1], normals[i+2]));
+////      std::cout << normals[i + 0] << " " 
+////                << normals[i + 1] << " " 
+////                << normals[i + 2] << std::endl;
+////      std::cout << norm << std::endl;
+//    }
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
@@ -342,20 +342,15 @@ void Mesh::commit2()
   // ***************************** NBO *****************************
   if(m_mesh.has_vertex_normals())
   {
-//    std::vector<GLfloat> normals;
-//    for(auto v_iter = m_mesh.vertices_begin();
-//             v_iter != m_mesh.vertices_end();
-//             ++v_iter)
-//    {
-//      normals.push_back(m_mesh.normal(*v_iter).data()[0]);
-//      normals.push_back(m_mesh.normal(*v_iter).data()[1]);
-//      normals.push_back(m_mesh.normal(*v_iter).data()[2]);
-//
-//      //int i = normals.size() - 3;
-//      //std::cout << normals[i + 0] << " " 
-//      //          << normals[i + 1] << " " 
-//      //          << normals[i + 2] << std::endl;
-//    }
+    std::vector<GLfloat> normals;
+    for(auto v_iter = m_mesh.vertices_begin();
+             v_iter != m_mesh.vertices_end();
+             ++v_iter)
+    {
+      normals.push_back(m_mesh.normal(*v_iter).data()[0]);
+      normals.push_back(m_mesh.normal(*v_iter).data()[1]);
+      normals.push_back(m_mesh.normal(*v_iter).data()[2]);
+    }
 
 
     glBindBuffer(GL_ARRAY_BUFFER, m_NBO);
@@ -364,6 +359,28 @@ void Mesh::commit2()
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat),
                           (GLvoid *)0);
     glEnableVertexAttribArray(1);
+  }
+
+
+  // ***************************** CBO *****************************
+  if(m_mesh.has_vertex_colors())
+  {
+    std::vector<GLfloat> colors;
+    for(auto v_iter = m_mesh.vertices().begin();
+             v_iter != m_mesh.vertices().end();
+             v_iter++)
+    {
+      colors.push_back(m_mesh.color(*v_iter).data()[0]);
+      colors.push_back(m_mesh.color(*v_iter).data()[1]);
+      colors.push_back(m_mesh.color(*v_iter).data()[2]);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_CBO);
+    glBufferData(GL_ARRAY_BUFFER, colors.size() * sizeof(GLfloat), 
+                 colors.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat),
+                         (GLvoid*)0);
+    glEnableVertexAttribArray(3);
   }
 
 

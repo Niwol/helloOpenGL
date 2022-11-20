@@ -13,5 +13,10 @@ out vec4 fragColor;
 uniform Material material;
 
 void main() {
-    fragColor = vec4(material.diffuse, 1.0);
+
+    vec3 lightDir = normalize(vec3(0.3, -1.0, 0.2));
+    float att = dot(normal, -lightDir);
+    att = clamp(att, 0.3, 1.0);
+
+    fragColor = vec4(material.diffuse * att, 1.0);
 }

@@ -69,6 +69,7 @@ private:
   GLuint m_VBO;
   GLuint m_NBO;
   GLuint m_UVBO;
+  GLuint m_CBO;
   GLuint m_EBO;
 
   std::vector<GLfloat> m_vertices;

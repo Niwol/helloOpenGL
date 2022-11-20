@@ -79,7 +79,7 @@ void Application::onCreate() {
                                      "../src/shaders/normalShader.fs");
 
   auto mat = std::make_shared<Material>();
-  mat->diffuse = {0.2f, 1.0f, 0.1f};
+  mat->diffuse = {0.2f, 0.5f, 0.7f};
 
   auto obj = std::make_shared<RenderObject>();
   {
@@ -88,7 +88,7 @@ void Application::onCreate() {
 
     mesh.request_vertex_normals();
 
-    if(!OpenMesh::IO::read_mesh(mesh, "/home/lowin/Documents/assets/common-3d-test-models/data/stanford-bunny.obj", opt))
+    if(!OpenMesh::IO::read_mesh(mesh, "/home/lowin/Documents/assets/teapot.obj", opt))
     {
       std::cout << "Error loading mesh" << std::endl;
     }
@@ -115,7 +115,7 @@ void Application::onCreate() {
   obj->getMesh()->commit2();
   
   glm::mat4 t(1.0f);
-  t = glm::scale(t, glm::vec3(10.0f));
+  t = glm::scale(t, glm::vec3(1.0f));
   obj->transform(t);
 
   obj->setShaderProgram(normal_sp);
@@ -216,21 +216,30 @@ void Application::processInput(float dt)
   } else
     m_keyWHold = false;
 
-  if(glfwGetKey(m_window, GLFW_KEY_C) == GLFW_PRESS)
+  // **************** Operations **************** 
+
+  if(glfwGetKey(m_window, GLFW_KEY_L) == GLFW_PRESS)
   {
-    if(!m_keyCHold)
+    if(!m_keyLHold)
     {
-      m_cullFaces = !m_cullFaces;
-      
-      if(m_cullFaces)
-        glCullFace(GL_FRONT_AND_BACK);
-      else
-        glCullFace(GL_FRONT_AND_BACK);
+      auto& obj = m_scene.objects[0];
+      auto mesh = obj->getMesh();
 
+      laplacianSmoothing(mesh->m_mesh);
+      mesh->commit2();
+
+      m_keyLHold = true;
     }
-
-    m_keyCHold = true;
   } else
-    m_keyCHold = false;
+    m_keyLHold = false;
+
+  if(glfwGetKey(m_window, GLFW_KEY_SEMICOLON) == GLFW_PRESS)
+  {
+      auto& obj = m_scene.objects[0];
+      auto mesh = obj->getMesh();
+
+      laplacianSmoothing(mesh->m_mesh);
+      mesh->commit2();
+  } 
 }
 

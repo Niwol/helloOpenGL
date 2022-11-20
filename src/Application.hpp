@@ -11,6 +11,7 @@
 #include "lib/Camera.hpp"
 #include "lib/renderer.hpp"
 #include "lib/RenderObject.hpp"
+#include "lib/Geometry/operations.hpp"
 
 class Application {
 public:
@@ -46,5 +47,5 @@ private:
   int m_lastMouseY = 0;
   bool m_mouseLeftHold = false;
   bool m_keyWHold = false;
-  bool m_keyCHold = false;
+  bool m_keyLHold = false;
 };
