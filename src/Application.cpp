@@ -28,7 +28,7 @@ bool Application::construct(int width, int height) {
 
   if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
-    return false;    
+    return false;
   }
 
   glViewport(0, 0, width, height);
@@ -80,6 +80,7 @@ void Application::onCreate() {
 
   auto mat = std::make_shared<Material>();
   mat->diffuse = {0.2f, 0.5f, 0.7f};
+  mat->useVertexColor = true;
 
   auto obj = std::make_shared<RenderObject>();
   {
@@ -88,7 +89,14 @@ void Application::onCreate() {
 
     mesh.request_vertex_normals();
 
-    if(!OpenMesh::IO::read_mesh(mesh, "/home/lowin/Documents/assets/teapot.obj", opt))
+    std::vector<std::string> objectPaths;
+    objectPaths.push_back("../object_files/armadillo.obj");
+    objectPaths.push_back("../object_files/bunnyhead.obj");
+    objectPaths.push_back("../object_files/lucy.obj");
+    objectPaths.push_back("../object_files/stanford-bunny.obj");
+    objectPaths.push_back("../object_files/teapot.obj");
+
+    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[4], opt))
     {
       std::cout << "Error loading mesh" << std::endl;
     }
@@ -100,6 +108,17 @@ void Application::onCreate() {
       mesh.release_face_normals();
     }
 
+    mesh.request_vertex_colors();
+    MyMesh::Color color;
+    color[0] = 1.0f;
+    color[1] = 0.0f;
+    color[2] = 0.0f;
+    for(auto v_iter = mesh.vertices().begin();
+             v_iter != mesh.vertices().end();
+             v_iter++)
+    {
+      mesh.set_color(*v_iter, color);
+    }
 
 //    for(auto v_iter = mesh.vertices().begin();
 //             v_iter != mesh.vertices().end();
@@ -118,7 +137,7 @@ void Application::onCreate() {
   t = glm::scale(t, glm::vec3(1.0f));
   obj->transform(t);
 
-  obj->setShaderProgram(normal_sp);
+  obj->setShaderProgram(sp);
   obj->setMaterial(mat);
 
   m_scene.objects.push_back(obj);

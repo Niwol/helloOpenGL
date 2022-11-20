@@ -172,6 +172,7 @@ void Renderer::render(const Scene& scene, const Camera& camera) {
           sp->setVec3("material.specular", m->specular);
           sp->setFloat("material.roughness", m->roughness);
           sp->setFloat("material.metallic", m->metallic);
+          sp->setBool("material.useVertexColor", m->useVertexColor);
         }
       }
 

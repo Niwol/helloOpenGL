@@ -20,4 +20,5 @@ struct Material {
   std::shared_ptr<Texture> specularTexture;
 
   int shininess = 32;
+  bool useVertexColor = false;
 };

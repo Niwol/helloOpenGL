@@ -17,10 +17,10 @@ find_package(glfw3 REQUIRED)
 
 find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
 
-set(Eigen3_DIR ${CMAKE_SOURCE_DIR}/eigen-3.4.0/cmake)
+set(Eigen3_DIR ${CMAKE_SOURCE_DIR}/External/Eigen/eigen3/cmake)
 find_package(Eigen3 REQUIRED)
 
-set(OpenMesh_DIR ${CMAKE_SOURCE_DIR}/OpenMesh/share/OpenMesh/cmake)
+set(OpenMesh_DIR ${CMAKE_SOURCE_DIR}/External/OpenMesh/share/OpenMesh/cmake)
 find_package(OpenMesh REQUIRED)
 
 #OpenGL deprecated on MacosX : remove compilation warning
@@ -45,7 +45,8 @@ include_directories(
    ${CMAKE_SOURCE_DIR}/src
    ${CMAKE_SOURCE_DIR}/glm
    ${CMAKE_SOURCE_DIR}/glad/include
-   ${CMAKE_SOURCE_DIR}/OpenMesh/include
+   ${CMAKE_SOURCE_DIR}/External/Eigne/include
+   ${CMAKE_SOURCE_DIR}/External/OpenMesh/include
 )
 
 SOURCE_GROUP("Source Files" FILES ${folder_source})

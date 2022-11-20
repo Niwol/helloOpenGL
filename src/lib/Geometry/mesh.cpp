@@ -6,6 +6,7 @@ Mesh::Mesh()
   glGenBuffers(1, &m_EBO);
   glGenBuffers(1, &m_NBO);
   glGenBuffers(1, &m_UVBO);
+  glGenBuffers(1, &m_CBO);
 
   glGenVertexArrays(1, &m_VAO);
 
@@ -19,6 +20,7 @@ Mesh::~Mesh()
   glDeleteBuffers(1, &m_NBO);
   glDeleteBuffers(1, &m_EBO);
   glDeleteBuffers(1, &m_UVBO);
+  glDeleteBuffers(1, &m_CBO);
 
   glDeleteVertexArrays(1, &m_VAO);
 }
