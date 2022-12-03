@@ -9,6 +9,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED OFF)
 set(CMAKE_CXX_EXTENSIONS ON)
 
+#set(CMAKE_CXX_COMPILER clang++)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
@@ -17,7 +19,7 @@ find_package(glfw3 REQUIRED)
 
 find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
 
-set(Eigen3_DIR ${CMAKE_SOURCE_DIR}/External/Eigen/eigen3/cmake)
+set(Eigen3_DIR ${CMAKE_SOURCE_DIR}/External/Eigen/share/eigen3/cmake)
 find_package(Eigen3 REQUIRED)
 
 set(OpenMesh_DIR ${CMAKE_SOURCE_DIR}/External/OpenMesh/share/OpenMesh/cmake)

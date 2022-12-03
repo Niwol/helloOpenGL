@@ -41,6 +41,10 @@ private:
   bool m_renderFill = true;
   bool m_cullFaces = true;
 
+  // Mesh
+  std::shared_ptr<RenderObject> m_mainObject;
+  uint32_t m_selectedVertex = 0;
+  uint32_t m_ringLevel = 0;
 
   // Input stuff
   int m_lastMouseX = 0;
@@ -48,4 +52,5 @@ private:
   bool m_mouseLeftHold = false;
   bool m_keyWHold = false;
   bool m_keyLHold = false;
+  bool m_keysHold[400] = {false};
 };

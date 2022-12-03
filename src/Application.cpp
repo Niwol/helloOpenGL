@@ -96,7 +96,7 @@ void Application::onCreate() {
     objectPaths.push_back("../object_files/stanford-bunny.obj");
     objectPaths.push_back("../object_files/teapot.obj");
 
-    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[4], opt))
+    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[0], opt))
     {
       std::cout << "Error loading mesh" << std::endl;
     }
@@ -111,15 +111,10 @@ void Application::onCreate() {
     mesh.request_vertex_colors();
     MyMesh::Color color;
     color[0] = 1.0f;
-    color[1] = 0.0f;
+    color[1] = 1.0f;
     color[2] = 0.0f;
-    for(auto v_iter = mesh.vertices().begin();
-             v_iter != mesh.vertices().end();
-             v_iter++)
-    {
-      mesh.set_color(*v_iter, color);
-    }
 
+    colorVertices(mesh, color);
 //    for(auto v_iter = mesh.vertices().begin();
 //             v_iter != mesh.vertices().end();
 //             v_iter++)
@@ -134,11 +129,13 @@ void Application::onCreate() {
   obj->getMesh()->commit2();
   
   glm::mat4 t(1.0f);
-  t = glm::scale(t, glm::vec3(1.0f));
+  t = glm::scale(t, glm::vec3(10.0f));
   obj->transform(t);
 
   obj->setShaderProgram(sp);
   obj->setMaterial(mat);
+
+  m_mainObject = obj;
 
   m_scene.objects.push_back(obj);
 }
@@ -161,29 +158,67 @@ void Application::onUpdate(float dt) {
 
 void Application::processInput(float dt)
 {
-  if(glfwGetKey(m_window, GLFW_KEY_ESCAPE))
+  enum KeyState
+  {
+    NONE = 0,
+    RELEASED = 1,
+    PRESSED = 2,
+    HELD = 4
+  };
+
+  auto checkKeyState = [this](int key)
+  {
+    int keyState = KeyState::NONE;
+
+    if(glfwGetKey(this->m_window, key) == GLFW_PRESS)
+      keyState = KeyState::HELD;
+
+    if(this->m_keysHold[key] == false && keyState & KeyState::HELD)
+    {
+      this->m_keysHold[key] = true;
+      keyState |= KeyState::PRESSED;
+
+      return keyState;
+    }
+    
+    if(this->m_keysHold[key] == true && !(keyState & KeyState::HELD))
+    {
+      this->m_keysHold[key] = false;
+      keyState = KeyState::RELEASED;
+
+      return keyState;
+    }
+
+    return keyState;
+  };
+
+  // **************** Event handleing ****************
+  
+//  if(glfwGetKey(m_window, GLFW_KEY_ESCAPE))
+//    glfwSetWindowShouldClose(m_window, true);
+  if(checkKeyState(GLFW_KEY_ESCAPE) & KeyState::PRESSED)
     glfwSetWindowShouldClose(m_window, true);
 
 
   // **************** Camera movement ****************
 
   // Movement
-  if(glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_W) & KeyState::HELD)
     m_camera.move(CameraMovement::FORWARD_XZ, dt);
 
-  if(glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_S) & KeyState::HELD)
     m_camera.move(CameraMovement::BACKWARD_XZ, dt);
   
-  if(glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_A) & KeyState::HELD)
     m_camera.move(CameraMovement::LEFT, dt);
   
-  if(glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_D) & KeyState::HELD)
     m_camera.move(CameraMovement::RIGHT, dt);
   
-  if(glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_SPACE) & KeyState::HELD)
     m_camera.move(CameraMovement::UP, dt);
   
-  if(glfwGetKey(m_window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_LEFT_CONTROL) & KeyState::HELD)
     m_camera.move(CameraMovement::DOWN, dt);
 
   // Scroll
@@ -219,46 +254,55 @@ void Application::processInput(float dt)
 
   // **************** Draw mode **************** 
 
-  if(glfwGetKey(m_window, GLFW_KEY_Z) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_Z) & KeyState::PRESSED)
   {
-    if(!m_keyWHold)
-    {
       m_renderFill = !m_renderFill;
       
       if(m_renderFill)
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       else
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-
-    m_keyWHold = true;
-  } else
-    m_keyWHold = false;
+  } 
 
   // **************** Operations **************** 
 
-  if(glfwGetKey(m_window, GLFW_KEY_L) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_X) & KeyState::PRESSED)
   {
-    if(!m_keyLHold)
-    {
-      auto& obj = m_scene.objects[0];
-      auto mesh = obj->getMesh();
+      auto mesh = m_mainObject->getMesh();
 
       laplacianSmoothing(mesh->m_mesh);
       mesh->commit2();
+  }
 
-      m_keyLHold = true;
-    }
-  } else
-    m_keyLHold = false;
-
-  if(glfwGetKey(m_window, GLFW_KEY_SEMICOLON) == GLFW_PRESS)
+  if(checkKeyState(GLFW_KEY_C) & KeyState::HELD)
   {
-      auto& obj = m_scene.objects[0];
-      auto mesh = obj->getMesh();
+      auto mesh = m_mainObject->getMesh();
 
       laplacianSmoothing(mesh->m_mesh);
       mesh->commit2();
   } 
+
+  if(checkKeyState(GLFW_KEY_O) & KeyState::PRESSED)
+  {
+    auto mesh = m_mainObject->getMesh();
+    auto vertex = mesh->m_mesh.vertices().to_vector()[m_selectedVertex];
+    colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, [](float dist){
+      MyMesh::Color color;
+      color[0] = 0.0f;
+      color[1] = 0.0f;
+      color[2] = 0.0f;
+
+      return color;
+    });
+
+    mesh->commit2();
+  }
+
+
+  if(checkKeyState(GLFW_KEY_I) & KeyState::PRESSED)
+    m_ringLevel++;
+
+  if(checkKeyState(GLFW_KEY_K) & KeyState::PRESSED && m_ringLevel > 0)
+    m_ringLevel--;
 }
 
