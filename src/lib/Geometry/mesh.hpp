@@ -7,6 +7,8 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 #include "opengl_stuff.h"
 
+#include "operations.hpp"
+
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MyMesh;
 
 class Mesh {

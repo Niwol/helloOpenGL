@@ -96,7 +96,7 @@ void Application::onCreate() {
     objectPaths.push_back("../object_files/stanford-bunny.obj");
     objectPaths.push_back("../object_files/teapot.obj");
 
-    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[0], opt))
+    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[4], opt))
     {
       std::cout << "Error loading mesh" << std::endl;
     }
@@ -109,9 +109,9 @@ void Application::onCreate() {
     }
 
     mesh.request_vertex_colors();
-    MyMesh::Color color;
-    color[0] = 1.0f;
-    color[1] = 1.0f;
+    MyColor color;
+    color[0] = 0.0f;
+    color[1] = 0.0f;
     color[2] = 0.0f;
 
     colorVertices(mesh, color);
@@ -129,7 +129,7 @@ void Application::onCreate() {
   obj->getMesh()->commit2();
   
   glm::mat4 t(1.0f);
-  t = glm::scale(t, glm::vec3(10.0f));
+  t = glm::scale(t, glm::vec3(1.0f));
   obj->transform(t);
 
   obj->setShaderProgram(sp);
@@ -138,6 +138,9 @@ void Application::onCreate() {
   m_mainObject = obj;
 
   m_scene.objects.push_back(obj);
+
+
+  m_selectedVertex = 1250;
 }
 
 void Application::onUpdate(float dt) {
@@ -282,27 +285,89 @@ void Application::processInput(float dt)
       mesh->commit2();
   } 
 
+  // Vertex coloring
+  
+  auto blackFunc = [](float)
+  {
+    MyMesh::Color color;
+    color[0] = 0;
+    color[1] = 0;
+    color[2] = 0;
+
+    return color;
+  };
+
+  auto grayScaleFunc = [](float x)
+  {
+    MyColor color;
+    color[0] = 1.0f - x;
+    color[1] = 1.0f - x;
+    color[2] = 1.0f - x;
+
+    MyMesh::Color res = color_floatToUint(color);
+
+    return res;
+  };
+
+  bool redraw = false;
+  uint32_t previousRingLevel = m_ringLevel;
+  uint32_t previousVertex = m_selectedVertex;
+
+
   if(checkKeyState(GLFW_KEY_O) & KeyState::PRESSED)
   {
-    auto mesh = m_mainObject->getMesh();
-    auto vertex = mesh->m_mesh.vertices().to_vector()[m_selectedVertex];
-    colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, [](float dist){
-      MyMesh::Color color;
-      color[0] = 0.0f;
-      color[1] = 0.0f;
-      color[2] = 0.0f;
+    previousVertex = m_selectedVertex;
+    m_selectedVertex++;
+    redraw = true;
+  }
 
-      return color;
-    });
+  if(checkKeyState(GLFW_KEY_L) & KeyState::PRESSED)
+  {
+    previousVertex = m_selectedVertex;
+    m_selectedVertex--;
+    redraw = true;
+  }
+  
+  if(checkKeyState(GLFW_KEY_P) & KeyState::HELD)
+  {
+    previousVertex = m_selectedVertex;
+    m_selectedVertex++;
+    redraw = true;
+  }
+
+  if(checkKeyState(GLFW_KEY_SEMICOLON) & KeyState::HELD)
+  {
+    previousVertex = m_selectedVertex;
+    m_selectedVertex--;
+    redraw = true;
+  }
+
+  if(checkKeyState(GLFW_KEY_I) & KeyState::PRESSED)
+  {
+    previousRingLevel = m_ringLevel;
+    m_ringLevel++;
+    redraw = true;
+  }
+
+  if(checkKeyState(GLFW_KEY_K) & KeyState::PRESSED && m_ringLevel > 0)
+  {
+    previousRingLevel = m_ringLevel;
+    m_ringLevel--;
+    redraw = true;
+  }
+
+  if(redraw)
+  {
+    auto mesh = m_mainObject->getMesh();
+    auto vertices = mesh->m_mesh.vertices().to_vector();
+
+    auto vertex = vertices[previousVertex];
+    colorVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc);
+
+    vertex = vertices[m_selectedVertex];
+    colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc);
 
     mesh->commit2();
   }
-
-
-  if(checkKeyState(GLFW_KEY_I) & KeyState::PRESSED)
-    m_ringLevel++;
-
-  if(checkKeyState(GLFW_KEY_K) & KeyState::PRESSED && m_ringLevel > 0)
-    m_ringLevel--;
 }
 

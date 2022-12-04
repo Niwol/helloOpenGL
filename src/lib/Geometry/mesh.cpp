@@ -372,9 +372,12 @@ void Mesh::commit2()
              v_iter != m_mesh.vertices().end();
              v_iter++)
     {
-      colors.push_back(m_mesh.color(*v_iter).data()[0]);
-      colors.push_back(m_mesh.color(*v_iter).data()[1]);
-      colors.push_back(m_mesh.color(*v_iter).data()[2]);
+      MyMesh::Color color = m_mesh.color(*v_iter);
+      MyColor fColor = color_uintToFloat(color);
+
+      colors.push_back(fColor[0]);
+      colors.push_back(fColor[1]);
+      colors.push_back(fColor[2]);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, m_CBO);

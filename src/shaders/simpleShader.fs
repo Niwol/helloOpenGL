@@ -20,6 +20,7 @@ void main() {
     vec3 lightDir = normalize(vec3(0.3, -1.0, 0.2));
     float att = dot(normal, -lightDir);
     att = clamp(att, 0.3, 1.0);
+    att = 1.0;
 
 //    fragColor = vec4(0.0, 1.0, 0.0, 1.0);
 
