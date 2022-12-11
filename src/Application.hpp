@@ -30,7 +30,6 @@ private:
 
 private:
 
-
   std::shared_ptr<Renderer> m_renderer;
   Camera m_camera;
   Scene m_scene;

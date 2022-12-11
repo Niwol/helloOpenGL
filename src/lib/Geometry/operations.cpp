@@ -62,8 +62,9 @@ computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
       {
         currentHalfEdge = currentHalfEdge.opp();
         
-        innerVertexIndex1++;
-        innerVertexIndex2++;
+        innerVertexIndex1 = (innerVertexIndex1 + 1) % prevRing.size();
+        innerVertexIndex2 = (innerVertexIndex2 + 1) % prevRing.size();
+
       }
       else if(currentVertex != rings[ring].back())
       {
