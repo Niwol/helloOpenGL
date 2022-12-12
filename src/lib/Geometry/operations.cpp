@@ -1,10 +1,20 @@
 #include "operations.hpp"
 
+bool vecContains(const std::vector<OpenMesh::SmartVertexHandle> &vec, 
+                 const OpenMesh::SmartVertexHandle &vertex)
+{
+  for(auto& v : vec)
+  {
+    if(v == vertex)
+      return true;
+  }
+
+  return false;
+}
+
 std::vector<std::vector<OpenMesh::SmartVertexHandle>>
 computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
 {
-  std::cout << "***   Computing rings   ***\n" << std::endl;
-
   std::vector<std::vector<OpenMesh::SmartVertexHandle>> rings;
   rings.push_back(std::vector<OpenMesh::SmartVertexHandle>());
   rings[0].push_back(vertex);
@@ -13,8 +23,6 @@ computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
 
   for(uint32_t ring = 1; ring <= nbRings; ring++)
   {
-    std::cout << "Computing ring " << ring << std::endl;
-
     // Find first half edge
     OpenMesh::SmartHalfedgeHandle currentHalfEdge;
     if(ring == 1)
@@ -34,12 +42,11 @@ computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
         }
       }
 
-      currentHalfEdge = currentHalfEdge.opp().next();
-    }
+      currentHalfEdge = currentHalfEdge.opp();
 
-    // Init the two sliding inner vertex indices
-    int innerVertexIndex1 = 0;
-    int innerVertexIndex2 = ring == 1 ? 0 : 1;
+      while(vecContains(prevRing, currentHalfEdge.to()))
+        currentHalfEdge = currentHalfEdge.next();
+    }
 
     // Init vertex start
     auto firstVertex = currentHalfEdge.to();
@@ -47,26 +54,14 @@ computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
 
     // Prepare current ring
     rings.push_back(std::vector<OpenMesh::SmartVertexHandle>());
-    rings[ring].push_back(currentVertex);
-
-    std::cout << "Prev ring size: " << prevRing.size() << std::endl;
-    std::cout << "idx1: " << innerVertexIndex1 << "  idx2: " << innerVertexIndex2 << std::endl;
 
     do
     {
-      if(currentVertex == prevRing[innerVertexIndex1])
+      if(vecContains(prevRing, currentVertex))
       {
         currentHalfEdge = currentHalfEdge.opp();
       }
-      else if(currentVertex == prevRing[innerVertexIndex2])
-      {
-        currentHalfEdge = currentHalfEdge.opp();
-        
-        innerVertexIndex1 = (innerVertexIndex1 + 1) % prevRing.size();
-        innerVertexIndex2 = (innerVertexIndex2 + 1) % prevRing.size();
-
-      }
-      else if(currentVertex != rings[ring].back())
+      else 
       {
         rings[ring].push_back(currentVertex);
       }
@@ -193,3 +188,29 @@ void moveVertexRegion(MyMesh& mesh, MyMesh::VertexHandle vertex,
 {
   
 }
+
+void operationOnVertexRegion(MyMesh& mesh, 
+                             OpenMesh::SmartVertexHandle vertex,
+                             uint32_t nbRings,
+                             std::function<void(MyMesh&,
+                                                OpenMesh::SmartVertexHandle,
+                                                float)> vertexFunc,
+                             std::function<float(float)> weightFunc)
+{
+  auto rings = computRings(mesh, vertex, nbRings);
+
+  int i = 0;
+  for(auto& ring : rings)
+  {
+    float x = (float)i / nbRings;
+
+    for(auto& v : ring)
+    {
+      float weight = weightFunc(x);
+      vertexFunc(mesh, v, weight);
+    }
+
+    i++;
+  }
+}
+

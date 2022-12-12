@@ -96,7 +96,7 @@ void Application::onCreate() {
     objectPaths.push_back("../object_files/stanford-bunny.obj");
     objectPaths.push_back("../object_files/teapot.obj");
 
-    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[4], opt))
+    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[1], opt))
     {
       std::cout << "Error loading mesh" << std::endl;
     }
@@ -129,7 +129,7 @@ void Application::onCreate() {
   obj->getMesh()->commit2();
   
   glm::mat4 t(1.0f);
-  t = glm::scale(t, glm::vec3(1.0f));
+  t = glm::scale(t, glm::vec3(10.0f));
   obj->transform(t);
 
   obj->setShaderProgram(sp);
@@ -287,26 +287,29 @@ void Application::processInput(float dt)
 
   // Vertex coloring
   
-  auto blackFunc = [](float)
+  auto linear = [](float x)
+  {
+    return 1.0f - x;
+  };
+  
+  auto blackFunc = [](MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, float)
   {
     MyMesh::Color color;
     color[0] = 0;
     color[1] = 0;
     color[2] = 0;
 
-    return color;
+    mesh.set_color(vertex, color);
   };
 
-  auto grayScaleFunc = [](float x)
+  auto grayScaleFunc = [](MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, float x)
   {
-    MyColor color;
-    color[0] = 1.0f - x;
-    color[1] = 1.0f - x;
-    color[2] = 1.0f - x;
+    MyColor color = {1.0f, 1.0f, 1.0f};
+    color *= x;
 
     MyMesh::Color res = color_floatToUint(color);
 
-    return res;
+    mesh.set_color(vertex, res);
   };
 
   bool redraw = false;
@@ -362,10 +365,12 @@ void Application::processInput(float dt)
     auto vertices = mesh->m_mesh.vertices().to_vector();
 
     auto vertex = vertices[previousVertex];
-    colorVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc);
+    // colorVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc);
+    operationOnVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc, linear);
 
     vertex = vertices[m_selectedVertex];
-    colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc);
+    // colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc);
+    operationOnVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc, linear);
 
     mesh->commit2();
   }

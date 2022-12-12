@@ -45,3 +45,11 @@ void moveVertexRegion(MyMesh& mesh, MyMesh::VertexHandle vertex,
                       MyMesh::Point offset, uint32_t ringLevel, 
                       std::function<float(float)> colorFunc);
 
+void operationOnVertexRegion(MyMesh& mesh, 
+                             OpenMesh::SmartVertexHandle vertex,
+                             uint32_t nbRings,
+                             std::function<void(MyMesh&,
+                                                OpenMesh::SmartVertexHandle,
+                                                float)> vertexFunc,
+                             std::function<float(float)> weightFunc);
+
