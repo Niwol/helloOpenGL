@@ -20,6 +20,7 @@ computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
   rings[0].push_back(vertex);
 
   std::vector<OpenMesh::SmartVertexHandle> prevRing = rings[0];
+  std::vector<OpenMesh::SmartVertexHandle> prevPrevRing = rings[0];
 
   for(uint32_t ring = 1; ring <= nbRings; ring++)
   {
@@ -31,21 +32,42 @@ computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
     }
     else
     {
-      for(auto halfEdge_iter = mesh.voh_begin(prevRing[0]);
-               halfEdge_iter != mesh.voh_end(prevRing[0]);
-               halfEdge_iter++)
+      // for(auto halfEdge_iter = mesh.voh_begin(prevRing[0]);
+      //          halfEdge_iter != mesh.voh_end(prevRing[0]);
+      //          halfEdge_iter++)
+      // {
+      //   if(halfEdge_iter->to() == prevRing[1])
+      //   {
+      //     currentHalfEdge = *halfEdge_iter;
+      //     break;
+      //   }
+      // }
+
+      // currentHalfEdge = currentHalfEdge.opp();
+
+      // while(vecContains(prevRing, currentHalfEdge.to()))
+      //   currentHalfEdge = currentHalfEdge.next();
+
+      bool vertexFound = false;
+      int serachIdx = 0;
+
+      while(!vertexFound)
       {
-        if(halfEdge_iter->to() == prevRing[1])
+        for(auto halfEdge_iter = mesh.voh_begin(prevRing[serachIdx]);
+                 halfEdge_iter != mesh.voh_end(prevRing[serachIdx]);
+                 halfEdge_iter++)
         {
-          currentHalfEdge = *halfEdge_iter;
-          break;
+          if((vecContains(prevPrevRing, halfEdge_iter->to()) ||
+              vecContains(prevRing, halfEdge_iter->to())) == false)
+          {
+            currentHalfEdge = *halfEdge_iter;
+            vertexFound = true;
+            break;
+          }
         }
+
+        serachIdx++;
       }
-
-      currentHalfEdge = currentHalfEdge.opp();
-
-      while(vecContains(prevRing, currentHalfEdge.to()))
-        currentHalfEdge = currentHalfEdge.next();
     }
 
     // Init vertex start
@@ -71,6 +93,7 @@ computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings)
     }
     while(currentVertex != firstVertex);
 
+    prevPrevRing = prevRing;
     prevRing = rings[ring];
   }
 
@@ -199,18 +222,80 @@ void operationOnVertexRegion(MyMesh& mesh,
 {
   auto rings = computRings(mesh, vertex, nbRings);
 
-  int i = 0;
+  std::vector<OpenMesh::SmartVertexHandle> allVertices;
+
+
+  int nbVertices = 0;
   for(auto& ring : rings)
   {
-    float x = (float)i / nbRings;
+    nbVertices += ring.size();
 
     for(auto& v : ring)
-    {
-      float weight = weightFunc(x);
-      vertexFunc(mesh, v, weight);
-    }
-
-    i++;
+      allVertices.push_back(v);
   }
-}
 
+  int borderStart = rings[rings.size() - 1].size();
+  borderStart = nbVertices - borderStart;
+
+  Eigen::MatrixXf M(nbVertices, nbVertices);
+  Eigen::VectorXf B(nbVertices);
+
+  B[0] = 1.0f;
+  for(int i = 1; i < nbVertices; i++)
+    B[i] = 0.0f;
+
+  
+  
+  for(int i = 0; i < nbVertices; i++)
+  {
+    for(int j = 0; j < nbVertices; j++)
+    {
+      if(i == 0)
+      {
+        M(i, j) = 0.0f;
+      }
+      else if(i < borderStart)
+      {
+        bool isNeighbor = false;
+
+        for(auto he_iter = allVertices[i].outgoing_halfedges().begin();
+                 he_iter != allVertices[i].outgoing_halfedges().end();
+                 he_iter++)
+        {
+          if(he_iter->to() == allVertices[j])
+          {
+            isNeighbor = true;
+            break;
+          }
+        }
+
+        if(isNeighbor)
+        {
+          int valence = allVertices[i].valence();
+          M(i, j) = 1.0f / (float)valence;
+        }
+        else if(i == j)
+        {
+          M(i, j) = -1.0f;
+        }
+        else
+        {
+          M(i, j) = 0.0f;
+        }
+      }
+      else
+      {
+        if(i == j)
+          M(i, j) = 1.0f;
+        else
+          M(i, j) = 0.0f;
+      }
+    }
+  }
+  M(0, 0) = 1.0f;
+
+  Eigen::VectorXf x = M.colPivHouseholderQr().solve(B);
+
+  for(int i = 0; i < borderStart; i++)
+    vertexFunc(mesh, allVertices[i], x(i));
+}

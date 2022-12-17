@@ -6,6 +6,7 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 
 #include <Eigen/Core>
+#include <Eigen/Dense>
 
 typedef OpenMesh::PolyMesh_ArrayKernelT<> MyMesh;
 typedef Eigen::Vector3f MyColor;

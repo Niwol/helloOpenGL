@@ -95,8 +95,10 @@ void Application::onCreate() {
     objectPaths.push_back("../object_files/lucy.obj");
     objectPaths.push_back("../object_files/stanford-bunny.obj");
     objectPaths.push_back("../object_files/teapot.obj");
+    objectPaths.push_back("../object_files/woody.obj");
+    objectPaths.push_back("../object_files/spot.obj");
 
-    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[1], opt))
+    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[6], opt))
     {
       std::cout << "Error loading mesh" << std::endl;
     }
@@ -129,7 +131,7 @@ void Application::onCreate() {
   obj->getMesh()->commit2();
   
   glm::mat4 t(1.0f);
-  t = glm::scale(t, glm::vec3(10.0f));
+  t = glm::scale(t, glm::vec3(30.0f));
   obj->transform(t);
 
   obj->setShaderProgram(sp);
@@ -365,12 +367,12 @@ void Application::processInput(float dt)
     auto vertices = mesh->m_mesh.vertices().to_vector();
 
     auto vertex = vertices[previousVertex];
-    // colorVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc);
-    operationOnVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc, linear);
+     colorVertexRegion(mesh->m_mesh, vertex, previousRingLevel, [](float){MyMesh::Color c; return c;});
+    //operationOnVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc, linear);
 
     vertex = vertices[m_selectedVertex];
-    // colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc);
-    operationOnVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc, linear);
+     colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, [](float){MyMesh::Color c; return c;});
+    //operationOnVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc, linear);
 
     mesh->commit2();
   }
