@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 #include <OpenMesh/Core/IO/MeshIO.hh>
@@ -32,25 +33,16 @@ inline MyColor color_uintToFloat(const MyMesh::Color color)
 }
 
 std::vector<std::vector<OpenMesh::SmartVertexHandle>>
-computRings(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, uint32_t nbRings);
+computRings(OpenMesh::SmartVertexHandle vertex, uint32_t nbRings);
 
 void laplacianSmoothing(MyMesh& mesh);
 
 void colorVertices(MyMesh& mesh, MyColor color);
-
-void colorVertexRegion(MyMesh& mesh, OpenMesh::SmartVertexHandle vertex,
-                       uint32_t ringLevel,
-                       std::function<MyMesh::Color(float)> colorFunc);
-
-void moveVertexRegion(MyMesh& mesh, MyMesh::VertexHandle vertex, 
-                      MyMesh::Point offset, uint32_t ringLevel, 
-                      std::function<float(float)> colorFunc);
 
 void operationOnVertexRegion(MyMesh& mesh, 
                              OpenMesh::SmartVertexHandle vertex,
                              uint32_t nbRings,
                              std::function<void(MyMesh&,
                                                 OpenMesh::SmartVertexHandle,
-                                                float)> vertexFunc,
-                             std::function<float(float)> weightFunc);
+                                                float)> vertexFunc);
 

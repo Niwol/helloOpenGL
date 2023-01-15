@@ -71,78 +71,66 @@ void Application::onCreate() {
 
   m_camera = Camera({0.0f, 0.0f, -5.0f});
 
-   auto sp = std::make_shared<ShaderProgram>("../src/shaders/simpleShader.vs",
+  auto sp = std::make_shared<ShaderProgram>("../src/shaders/simpleShader.vs",
                                             "../src/shaders/simpleShader.fs");
 
-   auto normal_sp = 
-     std::make_shared<ShaderProgram>("../src/shaders/normalShader.vs",
-                                     "../src/shaders/normalShader.fs");
+  auto normal_sp = 
+    std::make_shared<ShaderProgram>("../src/shaders/normalShader.vs",
+                                    "../src/shaders/normalShader.fs");
 
-  auto mat = std::make_shared<Material>();
-  mat->diffuse = {0.2f, 0.5f, 0.7f};
-  mat->useVertexColor = true;
-
+  // RenderObject
   auto obj = std::make_shared<RenderObject>();
+
+  // Mesh loading
+  OpenMesh::IO::Options opt;
+  auto &mesh = obj->getMesh()->m_mesh;
+
+  mesh.request_vertex_normals();
+
+  std::vector<std::string> objectPaths;
+  objectPaths.push_back("../object_files/armadillo.obj");
+  objectPaths.push_back("../object_files/bunnyhead.obj");
+  objectPaths.push_back("../object_files/lucy.obj");
+  objectPaths.push_back("../object_files/stanford-bunny.obj");
+  objectPaths.push_back("../object_files/teapot.obj");
+  objectPaths.push_back("../object_files/woody.obj");
+  objectPaths.push_back("../object_files/spot.obj");
+
+  if(!OpenMesh::IO::read_mesh(mesh, objectPaths[6], opt))
   {
-    OpenMesh::IO::Options opt;
-    auto &mesh = obj->getMesh()->m_mesh;
-
-    mesh.request_vertex_normals();
-
-    std::vector<std::string> objectPaths;
-    objectPaths.push_back("../object_files/armadillo.obj");
-    objectPaths.push_back("../object_files/bunnyhead.obj");
-    objectPaths.push_back("../object_files/lucy.obj");
-    objectPaths.push_back("../object_files/stanford-bunny.obj");
-    objectPaths.push_back("../object_files/teapot.obj");
-    objectPaths.push_back("../object_files/woody.obj");
-    objectPaths.push_back("../object_files/spot.obj");
-
-    if(!OpenMesh::IO::read_mesh(mesh, objectPaths[6], opt))
-    {
-      std::cout << "Error loading mesh" << std::endl;
-    }
-
-    if(!opt.check(OpenMesh::IO::Options::VertexNormal))
-    {
-      mesh.request_face_normals();
-      mesh.update_normals();
-      mesh.release_face_normals();
-    }
-
-    mesh.request_vertex_colors();
-    MyColor color;
-    color[0] = 0.0f;
-    color[1] = 0.0f;
-    color[2] = 0.0f;
-
-    colorVertices(mesh, color);
-//    for(auto v_iter = mesh.vertices().begin();
-//             v_iter != mesh.vertices().end();
-//             v_iter++)
-//    {
-//      auto p = mesh.point(*v_iter);
-//      auto n = mesh.normal(*v_iter);
-//
-//      mesh.set_point(*v_iter, p + n);
-//    }
+    std::cout << "Error loading mesh" << std::endl;
   }
 
+  if(!opt.check(OpenMesh::IO::Options::VertexNormal))
+  {
+    mesh.request_face_normals();
+    mesh.update_normals();
+    mesh.release_face_normals();
+  }
+
+  // Mesh color
+  mesh.request_vertex_colors();
+  MyColor color = {0.0f, 0.0f, 0.0f};
+
+  colorVertices(mesh, color);
   obj->getMesh()->commit2();
   
+  // Mesh scale
   glm::mat4 t(1.0f);
   t = glm::scale(t, glm::vec3(30.0f));
   obj->transform(t);
 
+  // Shader program
   obj->setShaderProgram(sp);
+
+  // Material
+  auto mat = std::make_shared<Material>();
+  mat->useVertexColor = true;
   obj->setMaterial(mat);
 
   m_mainObject = obj;
 
   m_scene.objects.push_back(obj);
-
-
-  m_selectedVertex = 1250;
 }
 
 void Application::onUpdate(float dt) {
@@ -199,8 +187,6 @@ void Application::processInput(float dt)
 
   // **************** Event handleing ****************
   
-//  if(glfwGetKey(m_window, GLFW_KEY_ESCAPE))
-//    glfwSetWindowShouldClose(m_window, true);
   if(checkKeyState(GLFW_KEY_ESCAPE) & KeyState::PRESSED)
     glfwSetWindowShouldClose(m_window, true);
 
@@ -257,6 +243,7 @@ void Application::processInput(float dt)
   } else
     m_mouseLeftHold = false;
 
+
   // **************** Draw mode **************** 
 
   if(checkKeyState(GLFW_KEY_Z) & KeyState::PRESSED)
@@ -269,7 +256,8 @@ void Application::processInput(float dt)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   } 
 
-  // **************** Operations **************** 
+
+  // **************** Laplacian smoothing **************** 
 
   if(checkKeyState(GLFW_KEY_X) & KeyState::PRESSED)
   {
@@ -287,12 +275,8 @@ void Application::processInput(float dt)
       mesh->commit2();
   } 
 
-  // Vertex coloring
-  
-  auto linear = [](float x)
-  {
-    return 1.0f - x;
-  };
+
+  // **************** Vertex coloring **************** 
   
   auto blackFunc = [](MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, float)
   {
@@ -306,7 +290,7 @@ void Application::processInput(float dt)
 
   auto grayScaleFunc = [](MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, float x)
   {
-    MyColor color = {1.0f, 1.0f, 1.0f};
+    MyColor color = {1.0f, 0.0f, 0.0f};
     color *= x;
 
     MyMesh::Color res = color_floatToUint(color);
@@ -317,34 +301,46 @@ void Application::processInput(float dt)
   bool redraw = false;
   uint32_t previousRingLevel = m_ringLevel;
   uint32_t previousVertex = m_selectedVertex;
-
+  auto mesh = m_mainObject->getMesh();
 
   if(checkKeyState(GLFW_KEY_O) & KeyState::PRESSED)
   {
-    previousVertex = m_selectedVertex;
-    m_selectedVertex++;
-    redraw = true;
+    if(m_selectedVertex < mesh->m_mesh.n_vertices() - 1)
+    {
+      previousVertex = m_selectedVertex;
+      m_selectedVertex++;
+      redraw = true;
+    }
   }
 
   if(checkKeyState(GLFW_KEY_L) & KeyState::PRESSED)
   {
-    previousVertex = m_selectedVertex;
-    m_selectedVertex--;
-    redraw = true;
+    if(m_selectedVertex > 0)
+    {
+      previousVertex = m_selectedVertex;
+      m_selectedVertex--;
+      redraw = true;
+    }
   }
   
   if(checkKeyState(GLFW_KEY_P) & KeyState::HELD)
   {
-    previousVertex = m_selectedVertex;
-    m_selectedVertex++;
-    redraw = true;
+    if(m_selectedVertex < mesh->m_mesh.n_vertices() - 1)
+    {
+      previousVertex = m_selectedVertex;
+      m_selectedVertex++;
+      redraw = true;
+    }
   }
 
   if(checkKeyState(GLFW_KEY_SEMICOLON) & KeyState::HELD)
   {
-    previousVertex = m_selectedVertex;
-    m_selectedVertex--;
-    redraw = true;
+    if(m_selectedVertex > 0)
+    {
+      previousVertex = m_selectedVertex;
+      m_selectedVertex--;
+      redraw = true;
+    }
   }
 
   if(checkKeyState(GLFW_KEY_I) & KeyState::PRESSED)
@@ -356,24 +352,83 @@ void Application::processInput(float dt)
 
   if(checkKeyState(GLFW_KEY_K) & KeyState::PRESSED && m_ringLevel > 0)
   {
-    previousRingLevel = m_ringLevel;
-    m_ringLevel--;
-    redraw = true;
+    if(m_ringLevel > 0)
+    {
+      previousRingLevel = m_ringLevel;
+      m_ringLevel--;
+      redraw = true;
+    }
   }
 
   if(redraw)
   {
-    auto mesh = m_mainObject->getMesh();
     auto vertices = mesh->m_mesh.vertices().to_vector();
 
     auto vertex = vertices[previousVertex];
-     colorVertexRegion(mesh->m_mesh, vertex, previousRingLevel, [](float){MyMesh::Color c; return c;});
-    //operationOnVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc, linear);
+    operationOnVertexRegion(mesh->m_mesh, vertex, previousRingLevel, blackFunc);
 
     vertex = vertices[m_selectedVertex];
-     colorVertexRegion(mesh->m_mesh, vertex, m_ringLevel, [](float){MyMesh::Color c; return c;});
-    //operationOnVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc, linear);
+    operationOnVertexRegion(mesh->m_mesh, vertex, m_ringLevel, grayScaleFunc);
 
+    mesh->commit2();
+  }
+
+
+  // **************** Vertex movement **************** 
+
+  Eigen::Vector3f movement = {0.0f, 0.0f, 0.0f};
+  float movementValue = 0.01f;
+  bool moved = false;
+  auto moveFunc = [&movement](MyMesh& mesh, OpenMesh::SmartVertexHandle vertex, float weight)
+  {
+    MyMesh::Point moveTo;
+    moveTo[0] = movement.x() * weight;
+    moveTo[1] = movement.y() * weight;
+    moveTo[2] = movement.z() * weight;
+
+    mesh.set_point(vertex, mesh.point(vertex) + moveTo);
+  };
+
+  if(checkKeyState(GLFW_KEY_T) & KeyState::PRESSED)
+  {
+    movement.z() += movementValue;
+    moved = true;
+  }
+  
+  if(checkKeyState(GLFW_KEY_G) & KeyState::PRESSED)
+  {
+    movement.z() -= movementValue;
+    moved = true;
+  }
+
+  if(checkKeyState(GLFW_KEY_F) & KeyState::PRESSED)
+  {
+    movement.x() += movementValue;
+    moved = true;
+  }
+  
+  if(checkKeyState(GLFW_KEY_H) & KeyState::PRESSED)
+  {
+    movement.x() -= movementValue;
+    moved = true;
+  }
+
+  if(checkKeyState(GLFW_KEY_R) & KeyState::PRESSED)
+  {
+    movement.y() -= movementValue;
+    moved = true;
+  }
+
+  if(checkKeyState(GLFW_KEY_Y) & KeyState::PRESSED)
+  {
+    movement.y() += movementValue;
+    moved = true;
+  }
+
+  if(moved)
+  {
+    auto vertex = mesh->m_mesh.vertices().to_vector()[m_selectedVertex];
+    operationOnVertexRegion(mesh->m_mesh, vertex, m_ringLevel, moveFunc);
     mesh->commit2();
   }
 }
