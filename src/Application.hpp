@@ -5,51 +5,55 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <Eigen/Dense>
-#include <OpenMesh/Core/Mesh/TriMeshT.hh>
 
-#include "lib/Camera.hpp"
 #include "lib/renderer.hpp"
-#include "lib/RenderObject.hpp"
-#include "lib/Geometry/operations.hpp"
+#include "lib/Camera.hpp"
 
-class Application {
+class Runable;
+
+class Application
+{
 public:
-  Application();
-  ~Application();
+    struct Options
+    {
+        int width = 0;
+        int height = 0;
+    };
 
-  bool construct(int width, int height);
+    struct AppUtils
+    {
+        float delatTime = 0.0f;
+        GLFWwindow *window = nullptr;
 
-  void run();
+        std::shared_ptr<Renderer> renderer;
+        std::shared_ptr<Camera> camera;
+    };
+
+public:
+    Application();
+    Application(const Application&) = delete;
+
+    ~Application();
+
+    bool construct(std::unique_ptr<Runable> runable, const Application::Options& options);
+
+    void run();
 
 private:
-  void onCreate();
-  void onUpdate(float dt);
+    GLFWwindow *m_window = nullptr; 
+    std::unique_ptr<Runable> m_runable;
+    std::shared_ptr<Renderer> m_renderer;
+    std::shared_ptr<Camera> m_camera;
 
-  void processInput(float dt);
+    AppUtils m_appUtils;
+};
 
-private:
+class Runable
+{
+public:
+    Runable() = default;
+    virtual ~Runable() = default;
 
-  std::shared_ptr<Renderer> m_renderer;
-  Camera m_camera;
-  Scene m_scene;
-
-  GLFWwindow *m_window = nullptr;
-
-
-  bool m_renderFill = true;
-  bool m_cullFaces = true;
-
-  // Mesh
-  std::shared_ptr<RenderObject> m_mainObject;
-  uint32_t m_selectedVertex = 0;
-  uint32_t m_ringLevel = 0;
-
-  // Input stuff
-  int m_lastMouseX = 0;
-  int m_lastMouseY = 0;
-  bool m_mouseLeftHold = false;
-  bool m_keyWHold = false;
-  bool m_keyLHold = false;
-  bool m_keysHold[400] = {false};
+    virtual bool onCreate() = 0;
+    virtual bool onUpdate(Application::AppUtils& appUtils) = 0;
 };

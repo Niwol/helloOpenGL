@@ -1,16 +1,24 @@
 #include <iostream>
+#include <memory>
+#include <utility>
 
 #include "Application.hpp"
+#include "demo.hpp"
 
 int main(int, char**) {
 
-  std::cout << "Hello OpenGL!" << std::endl;
+    std::cout << "Hello OpenGL!" << std::endl;
 
-  Application app;
+    Application app;
+    std::unique_ptr<Demo> demo = std::make_unique<Demo>();
 
-  if(app.construct(800, 600))
-    app.run();
+    Application::Options options;
+    options.width = 800;
+    options.height = 600;
 
-  return EXIT_SUCCESS;
+    if(app.construct(std::move(demo), options))
+        app.run();
+
+    return EXIT_SUCCESS;
 }
 
