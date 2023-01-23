@@ -5,16 +5,19 @@ project(helloopenGL)
 cmake_minimum_required(VERSION 3.22.1) # Minimal version compatible QT5
 CMAKE_POLICY(SET CMP0072 NEW) # This will silence the Cmake Warning "Policy CMP0043 is not set"
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED OFF)
-set(CMAKE_CXX_EXTENSIONS ON)
+# Compiler stuff
+set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard" FORCE)
+#set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+#set(CMAKE_CXX_EXTENSIONS ON)
 
-set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra")
+set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "C++ compiler" FORCE)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra"
+    CACHE STRING "Compiler flags" FORCE)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 
+# External libs
 find_package(glfw3 REQUIRED)
 
 find_package(OpenGL REQUIRED) # define OPENGL_LIBRARIES
@@ -64,6 +67,7 @@ set( CMAKE_INCLUDE_CURRENT_DIR ON )
 ################################################################################
 # Build target application
 
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/build)
 add_executable(helloopenGL
                ${folder_source}
                ${folder_header}
