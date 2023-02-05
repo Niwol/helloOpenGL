@@ -1,5 +1,8 @@
 #include "Application.hpp"
+#include "lib/EventHandler.hpp"
 #include <GLFW/glfw3.h>
+#include <cstdio>
+#include <memory>
 
 
 Application::Application() {}
@@ -28,7 +31,6 @@ bool Application::construct(std::unique_ptr<Runable> runable, const Application:
     }
 
     glfwMakeContextCurrent(m_window);
-    m_appUtils.window = m_window;
 
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -43,7 +45,7 @@ bool Application::construct(std::unique_ptr<Runable> runable, const Application:
         glViewport(0, 0, width, height);
     });
 
-    // glfwSetWindowUserPointer(m_window, this);
+    glfwSetWindowUserPointer(m_window, runable.get());
 
     // OpenGL stuff
     glEnable(GL_DEPTH_TEST);
@@ -55,12 +57,21 @@ bool Application::construct(std::unique_ptr<Runable> runable, const Application:
     // Runable
     m_runable = std::move(runable);
 
+    // AppUtils
+    m_eventHandler = std::make_shared<EventHandler>();
+    m_eventHandler->setWindow(m_window);
+    m_renderer = std::make_shared<Renderer>();
+
+    m_appUtils.window = m_window;
+    m_appUtils.eventHandler = m_eventHandler;
+    m_appUtils.renderer = m_renderer;
+
     return true;
 }
 
 void Application::run()
 {
-    if(m_runable->onCreate() == false)
+    if(m_runable->onCreate(m_appUtils) == false)
         return;
 
     float currentTime = glfwGetTime();

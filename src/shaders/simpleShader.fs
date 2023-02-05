@@ -1,34 +1,120 @@
 #version 410 core
 
-struct Material {
-    vec3 diffuse;
-    vec3 specular;
-    int shininess;
 
-    bool useVertexColor;
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                   POINT_LIGHT_GLSL                     *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+struct PoinLight
+{
+    vec3 position;
+
+    float constant;
+    float linear;
+    float quadratic;
 };
 
+float getPointLightAttenuation(PoinLight light, vec3 fragPos)
+{
+    float lightDist = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant 
+                             + light.linear * lightDist 
+                             + light.quadratic * (lightDist * lightDist));
+
+    return attenuation;
+}
+
+vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
+{
+    return normalize(light.position - fragPos);
+}
+
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                      LIGHT_GLSL                        *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+    
+#define DIRECTION   0
+#define POINT       1
+#define SPOT        2
+
+
+uniform int lightType;
+
+uniform PoinLight pointLight;
+
+uniform vec3 lightColor;
+
+
+vec3 getLightColor(vec3 fragPos)
+{
+    switch(lightType)
+    {
+        case DIRECTION:
+            return vec3(0.0);
+            break;
+
+        case POINT:
+            return lightColor * getPointLightAttenuation(pointLight, fragPos);
+            break;
+
+        case SPOT:
+            return vec3(0.0);
+            break;
+    }
+}
+
+vec3 getLightDirection(vec3 fragPos)
+{
+    switch(lightType)
+    {
+        case DIRECTION:
+            return vec3(0.0);
+            break;
+
+        case POINT:
+            return getPointLightDirection(pointLight, fragPos);
+            break;
+
+        case SPOT:
+            return vec3(0.0);
+            break;
+    }
+}
+
+
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                        SHADER                          *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+in vec3 fragPos;
 in vec3 normal;
-in vec3 color;
 
 out vec4 fragColor;
 
-uniform Material material;
+uniform vec3 color;
+//uniform PointLight light;
 
-void main() {
+void main() 
+{
+    vec3 lightAtt = getLightColor(fragPos);
+    vec3 lightDir = getLightDirection(fragPos);
 
-    vec3 lightDir = normalize(vec3(0.3, -1.0, 0.2));
-    float att = dot(normal, -lightDir);
-    att = clamp(att, 0.3, 1.0);
-    att = 1.0;
-
-//    fragColor = vec4(0.0, 1.0, 0.0, 1.0);
-
-    if(material.useVertexColor)
-      fragColor = vec4(color * att, 1.0);
-//      fragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    else
-      fragColor = vec4(material.diffuse * att, 1.0);
-
-//    fragColor = vec4(0.0, 0.0, 1.0, 1.0);
+    vec3 ambiant = vec3(0.1) * lightColor;
+    float cosTheta = max(dot(lightDir, normal), 0.0);
+    
+    fragColor = vec4(lightColor * color * cosTheta + ambiant, 1.0);
 }

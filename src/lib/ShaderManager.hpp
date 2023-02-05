@@ -9,6 +9,16 @@
 
 #include "lib/ShaderProgram.hpp"
 
+enum DefaultShaders
+{
+    Normal              = 1,
+    Depth               = 2,
+    Simple              = 3,
+    BlinnPhong          = 4,
+    MetallicRoughness   = 5,
+    Total,
+};
+
 class ShaderManager
 {
 public:
@@ -22,7 +32,7 @@ public:
     void removeShaderProgram(uint32_t shaderID);
 
     std::optional<std::shared_ptr<ShaderProgram>> getShader(uint32_t shaderID);
-    std::optional<uint32_t> getShaderID(std::string name);
+    std::optional<uint32_t> getShaderID(std::string name) const;
 
 private:
     bool loadDefaultShaders();
@@ -32,7 +42,7 @@ private:
     std::map<std::string, uint32_t> m_shaderNameToID;
     std::map<uint32_t, std::string> m_shaderIDToName;
 
-    uint32_t m_nextShaderID = 0;
+    uint32_t m_nextShaderID = DefaultShaders::Total;
 };
 
 

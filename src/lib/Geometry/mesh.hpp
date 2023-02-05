@@ -23,6 +23,7 @@ public:
    * Transformes the mesh into a cube
    */
   void to_cube();
+  void to_sharp_cube();
   void to_cube2();
 
   /**

@@ -4,6 +4,9 @@
 #include "lib/ShaderProgram.hpp"
 
 ShaderProgram::ShaderProgram(std::string vertexPath, std::string fragmentPath) {
+
+    m_programId = glCreateProgram();
+
   if (vertexPath != "" && fragmentPath != "") {
     createProgram(vertexPath, fragmentPath);
   } else if (vertexPath != "" && fragmentPath == "") {
@@ -13,7 +16,11 @@ ShaderProgram::ShaderProgram(std::string vertexPath, std::string fragmentPath) {
   }
 }
 
-ShaderProgram::~ShaderProgram() { glDeleteProgram(m_programId); }
+ShaderProgram::~ShaderProgram() 
+{
+    if(m_programId)
+        glDeleteProgram(m_programId); 
+}
 
 bool ShaderProgram::createProgram(std::string vertexPath,
                                   std::string fragmentPath) {
@@ -67,7 +74,6 @@ bool ShaderProgram::createProgram(std::string vertexPath,
     return false;
 
   // Shader program and linking
-  m_programId = glCreateProgram();
   glAttachShader(m_programId, vertexShader);
   glAttachShader(m_programId, fragmentShader);
   glLinkProgram(m_programId);

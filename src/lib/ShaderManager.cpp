@@ -1,6 +1,7 @@
 #include "lib/ShaderManager.hpp"
 #include "lib/ShaderProgram.hpp"
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 #include <optional>
 #include <string>
@@ -61,7 +62,7 @@ ShaderManager::getShader(uint32_t shaderID)
     return iterator->second;
 }
 
-std::optional<uint32_t> ShaderManager::getShaderID(std::string name)
+std::optional<uint32_t> ShaderManager::getShaderID(std::string name) const
 {
     auto iterator = m_shaderNameToID.find(name);
     if(iterator == m_shaderNameToID.end())
@@ -76,20 +77,42 @@ std::optional<uint32_t> ShaderManager::getShaderID(std::string name)
 bool ShaderManager::loadDefaultShaders()
 {
     std::vector<std::pair<std::string, std::string>> shaderNames;
+    
     shaderNames.push_back(std::pair<std::string, std::string>
                          ("normalShader", "Normal"));
+    shaderNames.push_back(std::pair<std::string, std::string>
+                         ("depthShader", "Depth"));
+    shaderNames.push_back(std::pair<std::string, std::string>
+                         ("simpleShader", "Simple"));
+    shaderNames.push_back(std::pair<std::string, std::string>
+                         ("blinnPhong", "BlinnPhong"));
+    shaderNames.push_back(std::pair<std::string, std::string>
+                         ("brdfShader", "MetallicRoughness"));
+
+    uint32_t currentShaderID = m_nextShaderID;
+    m_nextShaderID = 1;
 
     for(auto& pair : shaderNames)
     {
-        std::string pathName = pair.first;
+        std::string pathName = "../src/shaders/" + pair.first;
         std::string name = pair.second;
 
         auto shader = std::make_shared<ShaderProgram>();
-        shader->createProgram("../src/shaders/" + pathName + ".vs",
-                              "../src/shaders/" + pathName + ".fs");
+        bool res = shader->createProgram(pathName + ".vs",
+                                         pathName + ".fs");
+
+    
+        if(!res)
+        {
+            std::cout << "[ShaderManager] Error: Failed to load default shader:"
+                      << " name = " << name
+                      << std::endl;
+        }
 
         addShaderProgram(shader, name);
     }
+
+    m_nextShaderID = currentShaderID;
 
     return true;
 }

@@ -126,5 +126,5 @@ private:
   bool checkCompileErrors(uint id, std::string type);
 
 private:
-  uint m_programId;
+  uint m_programId = 0;
 };

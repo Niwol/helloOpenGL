@@ -107,6 +107,160 @@ void Mesh::to_cube()
   commit();
 }
 
+void Mesh::to_sharp_cube() 
+{
+
+  // clang-format off
+  m_vertices = {
+    // Front face
+    -0.5f, -0.5f,  0.5f,    // Bottom left
+    -0.5f,  0.5f,  0.5f,    // Top left
+     0.5f,  0.5f,  0.5f,    // top rigth
+     0.5f, -0.5f,  0.5f,    // bottom rigth
+
+    // Right face
+     0.5f, -0.5f,  0.5f,    // Bottom left
+     0.5f,  0.5f,  0.5f,    // Top left
+     0.5f,  0.5f, -0.5f,    // Top right
+     0.5f, -0.5f, -0.5f,    // Bottom rigth
+
+    // Back face
+     0.5f, -0.5f, -0.5f,    // Bottom left
+     0.5f,  0.5f, -0.5f,    // Top left
+    -0.5f,  0.5f, -0.5f,    // Top right
+    -0.5f, -0.5f, -0.5f,    // Bottom right
+
+    // Left face
+    -0.5f, -0.5f, -0.5f,    // Bottom left
+    -0.5f,  0.5f, -0.5f,    // Top left
+    -0.5f,  0.5f,  0.5f,    // Top right
+    -0.5f, -0.5f,  0.5f,    // Bottom right
+
+    // Top face
+    -0.5f,  0.5f,  0.5f,    // Bottom left
+    -0.5f,  0.5f, -0.5f,    // Top left
+     0.5f,  0.5f, -0.5f,    // Top right
+     0.5f,  0.5f,  0.5f,    // Bottom right
+    
+    // Bottom face
+    -0.5f, -0.5f, -0.5f,    // Bottom left
+    -0.5f, -0.5f,  0.5f,    // Top left
+     0.5f, -0.5f,  0.5f,    // Top right
+     0.5f, -0.5f, -0.5f     // Bottom right
+  };
+
+  glm::vec3 normal = glm::vec3(1.0f);
+  normal = glm::normalize(normal);
+
+  m_normals = {
+    // Front face
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,
+
+    // Right face
+    1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+
+    // Back face
+    0.0f, 0.0f, -1.0f,
+    0.0f, 0.0f, -1.0f,
+    0.0f, 0.0f, -1.0f,
+    0.0f, 0.0f, -1.0f,
+
+    // Left face
+    -1.0f, 0.0f, 0.0f,
+    -1.0f, 0.0f, 0.0f,
+    -1.0f, 0.0f, 0.0f,
+    -1.0f, 0.0f, 0.0f,
+
+    // Top face
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+
+    // Bottom face
+    0.0f, -1.0f, 0.0f,
+    0.0f, -1.0f, 0.0f,
+    0.0f, -1.0f, 0.0f,
+    0.0f, -1.0f, 0.0f
+  };
+
+  m_uvCoords = {
+    // Front face
+    0.0f, 0.0f,   // bottom left
+    0.0f, 1.0f,   // top left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
+    
+    // Right face
+    0.0f, 0.0f,   // bottom left
+    0.0f, 1.0f,   // top left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
+
+    // Back face
+    0.0f, 0.0f,   // bottom left
+    0.0f, 1.0f,   // top left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
+
+    // Left face
+    0.0f, 0.0f,   // bottom left
+    0.0f, 1.0f,   // top left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
+    
+    // Top face
+    0.0f, 0.0f,   // bottom left
+    0.0f, 1.0f,   // top left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
+    
+    // Bottom face
+    0.0f, 0.0f,   // bottom left
+    0.0f, 1.0f,   // top left
+    1.0f, 1.0f,   // top rigth
+    1.0f, 0.0f,   // bottom rigth
+  };
+
+  m_indices = {
+    // Front face
+    0, 2, 1,
+    0, 3, 2,
+
+    // Right face
+    4, 6, 5,
+    4, 7, 6,
+
+    // Back face
+    8, 10, 9,
+    8, 11, 10,
+
+    // Left face
+    12, 14, 13,
+    12, 15, 14,
+
+    // Top face
+    16, 18, 17,
+    16, 19, 18,
+
+    // Bottom face
+    20, 22, 21,
+    20, 23, 22
+  };
+  // clang-format on
+
+  m_nbIndices = m_indices.size();
+  m_mode = GL_TRIANGLES;
+
+  commit();
+}
+
 void Mesh::to_cube2()
 {
   m_mesh.clean();  

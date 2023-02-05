@@ -8,6 +8,7 @@
 
 #include "lib/renderer.hpp"
 #include "lib/Camera.hpp"
+#include "lib/EventHandler.hpp"
 
 class Runable;
 
@@ -25,8 +26,8 @@ public:
         float delatTime = 0.0f;
         GLFWwindow *window = nullptr;
 
+        std::shared_ptr<EventHandler> eventHandler;
         std::shared_ptr<Renderer> renderer;
-        std::shared_ptr<Camera> camera;
     };
 
 public:
@@ -42,8 +43,8 @@ public:
 private:
     GLFWwindow *m_window = nullptr; 
     std::unique_ptr<Runable> m_runable;
+    std::shared_ptr<EventHandler> m_eventHandler;
     std::shared_ptr<Renderer> m_renderer;
-    std::shared_ptr<Camera> m_camera;
 
     AppUtils m_appUtils;
 };
@@ -54,6 +55,6 @@ public:
     Runable() = default;
     virtual ~Runable() = default;
 
-    virtual bool onCreate() = 0;
+    virtual bool onCreate(Application::AppUtils& appUtils) = 0;
     virtual bool onUpdate(Application::AppUtils& appUtils) = 0;
 };

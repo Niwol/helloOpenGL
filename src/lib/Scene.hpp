@@ -4,11 +4,11 @@
 #include <vector>
 
 #include "lib/RenderObject.hpp"
-#include "lib/Light/PointLight.hpp"
+#include "lib/Light/Light.hpp"
 
 struct Scene
 {
   std::vector<std::shared_ptr<RenderObject>> objects;
-  std::vector<PointLight> lights;
+  std::vector<std::shared_ptr<Light>> lights;
 };
 
