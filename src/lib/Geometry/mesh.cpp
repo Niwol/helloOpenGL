@@ -349,7 +349,21 @@ void Mesh::to_square()
 
   m_indices = {
     0, 1, 2,
-    1, 2, 3
+    1, 3, 2
+  };
+
+  m_normals = {
+      0.0f, 0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f,
+      0.0f, 0.0f, 1.0f
+  };
+
+  m_uvCoords = {
+      0.0f, 1.0f,
+      0.0f, 0.0f,
+      1.0f, 1.0f,
+      1.0f, 0.0f
   };
   // clang-format on
 

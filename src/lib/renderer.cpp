@@ -173,62 +173,33 @@ void Renderer::render(const Scene& scene, const Camera& camera,
 
         } break;
     }
-    
-    
-
-//    for (auto& ro : scene.objects) {
-//        auto sp = ro->getShaderProgram();
-//
-//        if(sp) {
-//            sp->use();
-//            sp->setMat4("model", ro->getModelMatrix());
-//            sp->setMat4("view", camera.getViewMatrix());
-//            sp->setMat4("projection", perspective);
-//            sp->setVec3("viewPos", camera.getPosition());
-//
-//            std::shared_ptr<Material> m;
-//            if ((m = ro->getMaterial())) {
-//
-//                // Set shader material
-//                sp->setInt("material.shininess", m->shininess);
-//
-//                if (m->isTextureMaterial) {
-//                    glActiveTexture(GL_TEXTURE0);
-//                    glBindTexture(GL_TEXTURE_2D, m->diffuseTexture->m_textureID);
-//                    sp->setInt("material.diffuse", 0);
-//
-//                    glActiveTexture(GL_TEXTURE1);
-//                    glBindTexture(GL_TEXTURE_2D, m->specularTexture->m_textureID);
-//                    sp->setInt("material.specular", 1);
-//
-//                } else {
-//                    sp->setVec3("material.diffuse", m->diffuse);
-//                    sp->setVec3("material.specular", m->specular);
-//                    sp->setFloat("material.roughness", m->roughness);
-//                    sp->setFloat("material.metallic", m->metallic);
-//                    sp->setBool("material.useVertexColor", m->useVertexColor);
-//                }
-//            }
-//
-//
-//            auto mesh = ro->getMesh();
-//            glBindVertexArray(mesh->m_VAO);
-//            glDrawElements(mesh->m_mode, mesh->m_nbIndices, GL_UNSIGNED_INT, 0);
-//        } else {
-//            std::cout
-//                << "Renderer::draw: WARNING: render object has no shader program set"
-//                << std::endl;
-//        }
-//    }
-//
-//    glBindVertexArray(0);
 }
 
 
 void Renderer::defaultRender(const Scene& scene, const Camera& camera)
 {
+    //glEnable(GL_BLEND);
+    //glDepthFunc(GL_LEQUAL);
+
+    glDepthFunc(GL_LESS);
+    glDepthMask(GL_TRUE);
+
+    glDisable(GL_BLEND);
+
+
+    bool blendEqual = false;
     for(auto& light : scene.lights)
     {        
+
+        if(blendEqual)
+        {
+            glDepthFunc(GL_LEQUAL);
+            glDepthMask(GL_FALSE);
+            
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE);
+        }
+
         for(auto& ro : scene.objects)
         {
             auto material = ro->getMaterial();
@@ -245,6 +216,8 @@ void Renderer::defaultRender(const Scene& scene, const Camera& camera)
 
             drawObject(*ro);
         }
+
+        //blendEqual = true;
     }
 
     glBindVertexArray(0);

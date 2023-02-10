@@ -42,6 +42,11 @@ public:
         m_material = material;
     }
 
+    inline void setTransform(glm::mat4 transform)
+    {
+        m_modelMatix = transform;
+    }
+
     /**
      * Gets the texture of the render objects
      */

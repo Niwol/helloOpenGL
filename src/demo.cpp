@@ -1,6 +1,10 @@
 #include "demo.hpp"
+#include "ext/matrix_transform.hpp"
+#include "ext/scalar_constants.hpp"
+#include "fwd.hpp"
 #include "lib/Camera.hpp"
 #include "lib/EventHandler.hpp"
+#include "lib/Light/Light.hpp"
 #include "lib/Light/PointLight.hpp"
 #include "lib/RenderObject.hpp"
 #include "lib/ShaderProgram.hpp"
@@ -22,16 +26,46 @@ bool Demo::onCreate(Application::AppUtils& appUtils)
     m_camera.setHeight(height);
 
     // Scene
-    auto obj = std::make_shared<RenderObject>();
-    obj->getMesh()->to_sharp_cube();
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_sharp_cube();
+        m_scene.objects.push_back(obj);
+    }
 
-    m_scene.objects.push_back(obj);
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_square();
+        
+        auto t = glm::mat4(1.0f);
+        t = glm::translate(t, glm::vec3(0.0f, -2.0f, 0.0f));
+        t = glm::rotate(t, -glm::pi<float>() / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        t = glm::scale(t, glm::vec3(500.0f));
+
+        obj->setTransform(t);
+
+        m_scene.objects.push_back(obj);
+    }
 
 
-    auto light = std::make_shared<PointLight>();
-    light->m_position = {1.5f, 3.0f, 0.0f};
 
-    m_scene.lights.push_back(light);
+
+
+    std::vector<std::shared_ptr<Light>> lights;
+    
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {1.5f, 3.0f, 0.0f};
+        lights.push_back(light);
+    }
+    
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {20.0f, 1.0f, 1.0f};
+        lights.push_back(light);
+    }
+
+    for(auto& light : lights)
+        m_scene.lights.push_back(light);
 
     setCallbacks(appUtils.window);
 
