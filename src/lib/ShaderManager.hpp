@@ -11,12 +11,13 @@
 
 enum DefaultShaders
 {
-    Normal              = 1,
-    Depth               = 2,
-    Simple              = 3,
-    BlinnPhong          = 4,
-    MetallicRoughness   = 5,
-    Total,
+    Shader_Black               = 1,
+    Shader_Normal              = 2,
+    Shader_Depth               = 3,
+    Shader_Simple              = 4,
+    Shader_BlinnPhong          = 5,
+    Shader_MetallicRoughness   = 6,
+    Shader_Total,
 };
 
 class ShaderManager
@@ -42,7 +43,7 @@ private:
     std::map<std::string, uint32_t> m_shaderNameToID;
     std::map<uint32_t, std::string> m_shaderIDToName;
 
-    uint32_t m_nextShaderID = DefaultShaders::Total;
+    uint32_t m_nextShaderID = DefaultShaders::Shader_Total;
 };
 
 

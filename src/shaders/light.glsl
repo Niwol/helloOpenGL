@@ -1,14 +1,17 @@
 #ifndef LIGHT_GLSL
 #define LIGHT_GLSL
 
-#include "shaders/pointLight.glsl"
-
-enum 
-{
-    DIRECTION   = 0,
-    POINT       = 1,
-    SPOT        = 2,
-};
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                      LIGHT_GLSL                        *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+    
+#define DIRECTION   0
+#define POINT       1
+#define SPOT        2
 
 
 uniform int lightType;
@@ -27,7 +30,7 @@ vec3 getLightColor(vec3 fragPos)
             break;
 
         case POINT:
-            return getPointLightColor(pointLight, fragPos);
+            return lightColor * getPointLightAttenuation(pointLight, fragPos);
             break;
 
         case SPOT:

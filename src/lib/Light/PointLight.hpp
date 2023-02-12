@@ -20,6 +20,6 @@ public:
     glm::vec3 m_position = {0.0f, 0.0f, 0.0f};
 
     float m_constant = 1.0f;
-    float m_linear = 0.7f;
-    float m_quadratic = 0.5f;
+    float m_linear = 0.09f;
+    float m_quadratic = 0.032f;
 };

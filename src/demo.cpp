@@ -6,6 +6,8 @@
 #include "lib/EventHandler.hpp"
 #include "lib/Light/Light.hpp"
 #include "lib/Light/PointLight.hpp"
+#include "lib/Materials/BlinnPhong.hpp"
+#include "lib/Materials/MetallicRought.hpp"
 #include "lib/RenderObject.hpp"
 #include "lib/ShaderProgram.hpp"
 #include "lib/renderer.hpp"
@@ -19,7 +21,7 @@ Demo::~Demo() {}
 bool Demo::onCreate(Application::AppUtils& appUtils)
 {
     // Camera
-    m_camera = Camera({0.0f, 0.0f, -5.0f});
+    m_camera = Camera({0.0f, 0.0f, 5.0f});
     int width, height;
     glfwGetWindowSize(appUtils.window, &width, &height);
     m_camera.setWidth(width);
@@ -29,6 +31,51 @@ bool Demo::onCreate(Application::AppUtils& appUtils)
     {
         auto obj = std::make_shared<RenderObject>();
         obj->getMesh()->to_sharp_cube();
+        m_scene.objects.push_back(obj);
+    }
+
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_sharp_cube();
+
+        auto t = glm::mat4(1.0);
+        t = glm::translate(t, glm::vec3(6.0f, -4.0f, -2.0f));
+        t = glm::scale(t, glm::vec3(8.0f));
+
+        obj->setTransform(t);
+
+        auto material = std::make_shared<BlinnPhong>();
+        
+        material->m_diffuseTexture.load("../textures/container2.png");
+        material->m_specularTexture.load("../textures/container2_specular.png");
+        material->m_hasTexture = true;
+        material->m_shininess = 128;
+
+        obj->setMaterial(material);
+
+        m_scene.objects.push_back(obj);
+    }
+    
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_sharp_cube();
+
+        auto t = glm::mat4(1.0);
+        t = glm::translate(t, glm::vec3(10.0f, 0.0f, 5.0f));
+        t = glm::scale(t, glm::vec3(3.0f));
+
+        obj->setTransform(t);
+
+        auto material = std::make_shared<MetallicRoughtness>();
+        
+        material->m_albedo = {1.0f, 0.0f, 1.0f};
+        material->m_roughtness = 0.8f;
+        material->m_metallic = 0.0;
+
+        obj->setMaterial(material);
+
+        m_selectedObj = obj;
+
         m_scene.objects.push_back(obj);
     }
 
@@ -47,20 +94,40 @@ bool Demo::onCreate(Application::AppUtils& appUtils)
     }
 
 
-
-
-
     std::vector<std::shared_ptr<Light>> lights;
     
     {
         auto light = std::make_shared<PointLight>();
+        light->m_position = {5.0f, 5.0f, 2.0f};
+        light->m_color = {1.0f, 1.0f, 1.0f};
+        lights.push_back(light);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {6.0f, 3.0f, 0.0f};
+        light->m_color = {1.0f, 1.0f, 1.0f};
+        lights.push_back(light);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
         light->m_position = {1.5f, 3.0f, 0.0f};
+        light->m_color = {1.0f, 0.0f, 0.0f};
         lights.push_back(light);
     }
     
     {
         auto light = std::make_shared<PointLight>();
+        light->m_position = {10.0f, 1.0f, 10.0f};
+        light->m_color = {0.0f, 1.0f, 0.0f};
+        lights.push_back(light);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
         light->m_position = {20.0f, 1.0f, 1.0f};
+        light->m_color = {0.0f, 0.0f, 1.0f};
         lights.push_back(light);
     }
 
@@ -80,8 +147,7 @@ bool Demo::onUpdate(Application::AppUtils &appUtils)
 {
     handleInput(*(appUtils.eventHandler), appUtils.delatTime);
 
-
-    appUtils.renderer->render(m_scene, m_camera, RenderMode::Default);
+    appUtils.renderer->render(m_scene, m_camera, m_renderMode);
     glfwSwapBuffers(appUtils.window);
 
     return !m_quit;
@@ -156,6 +222,42 @@ void Demo::handleInput(EventHandler& event, float dt)
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         else
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    if(event.getKeyState(GLFW_KEY_N) & PRESSED)
+        m_renderMode = RenderMode::Normal;
+
+    if(event.getKeyState(GLFW_KEY_B) & PRESSED)
+        m_renderMode = RenderMode::Depth;
+
+    if(event.getKeyState(GLFW_KEY_V) & PRESSED)
+        m_renderMode = RenderMode::Default;
+
+
+    // object color
+    if(event.getKeyState(GLFW_KEY_P) & PRESSED)
+    {
+        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
+        if(mat->m_metallic < 1.0f)
+            mat->m_metallic += 0.1f;
+    }
+    if(event.getKeyState(GLFW_KEY_SEMICOLON) & PRESSED)
+    {
+        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
+        if(mat->m_metallic > 0.0f)
+            mat->m_metallic -= 0.1f;
+    }
+    if(event.getKeyState(GLFW_KEY_O) & PRESSED)
+    {
+        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
+        if(mat->m_roughtness < 1.0f)
+            mat->m_roughtness += 0.1f;
+    }
+    if(event.getKeyState(GLFW_KEY_L) & PRESSED)
+    {
+        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
+        if(mat->m_roughtness > 0.0f)
+            mat->m_roughtness -= 0.1f;
     }
 }
 

@@ -178,28 +178,18 @@ void Renderer::render(const Scene& scene, const Camera& camera,
 
 void Renderer::defaultRender(const Scene& scene, const Camera& camera)
 {
-    //glEnable(GL_BLEND);
-    //glDepthFunc(GL_LEQUAL);
+    // Z pepass
+    zPrepass(scene, camera);
 
-    glDepthFunc(GL_LESS);
-    glDepthMask(GL_TRUE);
+    // Shadow volume stencil
+    shadowVolumeIntoStencil(scene, camera);
 
-    glDisable(GL_BLEND);
+    glDepthFunc(GL_EQUAL);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
 
-
-    bool blendEqual = false;
     for(auto& light : scene.lights)
     {        
-
-        if(blendEqual)
-        {
-            glDepthFunc(GL_LEQUAL);
-            glDepthMask(GL_FALSE);
-            
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE);
-        }
-
         for(auto& ro : scene.objects)
         {
             auto material = ro->getMaterial();
@@ -216,21 +206,64 @@ void Renderer::defaultRender(const Scene& scene, const Camera& camera)
 
             drawObject(*ro);
         }
-
-        //blendEqual = true;
     }
+
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
 
     glBindVertexArray(0);
 }
 
 void Renderer::normalRender(const Scene& scene, const Camera& camera)
 {
+    auto shader = m_shaderManager->getShader(DefaultShaders::Shader_Normal).value();
 
+    shader->use();
+
+    setCameraUniforms(camera, *shader);
+
+    for(auto& obj : scene.objects)
+    {
+        shader->setMat4("model", obj->getModelMatrix());
+        drawObject(*obj);
+    }
 }
 
 void Renderer::depthRender(const Scene& scene, const Camera& camera)
 {
+    auto shader = m_shaderManager->getShader(DefaultShaders::Shader_Depth).value();
 
+    shader->use();
+
+    setCameraUniforms(camera, *shader);
+
+    for(auto& obj : scene.objects)
+    {
+        shader->setMat4("model", obj->getModelMatrix());
+        drawObject(*obj);
+    }
+}
+
+void Renderer::zPrepass(const Scene& scene, const Camera& camera)
+{
+    auto shader = m_shaderManager->getShader(DefaultShaders::Shader_Black).value();
+
+    shader->use();
+    setCameraUniforms(camera, *shader);
+
+    for(auto& obj : scene.objects)
+    {
+        shader->setMat4("model", obj->getModelMatrix());
+        drawObject(*obj);
+    }
+
+    glBindVertexArray(0);
+}
+
+void Renderer::shadowVolumeIntoStencil(const Scene& scene, const Camera& camera)
+{
+    (void)scene;
+    (void)camera;
 }
 
 void Renderer::setCameraUniforms(const Camera& camera, ShaderProgram& shader)
@@ -239,7 +272,7 @@ void Renderer::setCameraUniforms(const Camera& camera, ShaderProgram& shader)
             glm::radians(45.0f), 
             float(camera.getWidth()) / float(camera.getHeight()),
             0.1f, 
-            100.0f);
+            500.0f);
 
     shader.setMat4("projection", perspective);
     shader.setMat4("view", camera.getViewMatrix());

@@ -79,6 +79,8 @@ bool ShaderManager::loadDefaultShaders()
     std::vector<std::pair<std::string, std::string>> shaderNames;
     
     shaderNames.push_back(std::pair<std::string, std::string>
+                         ("black", "Black"));
+    shaderNames.push_back(std::pair<std::string, std::string>
                          ("normalShader", "Normal"));
     shaderNames.push_back(std::pair<std::string, std::string>
                          ("depthShader", "Depth"));

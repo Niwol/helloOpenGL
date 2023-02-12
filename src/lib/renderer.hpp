@@ -71,6 +71,9 @@ private:
     void normalRender(const Scene& scene, const Camera& camera);
     void depthRender(const Scene& scene, const Camera& camera);
 
+    void zPrepass(const Scene& scene, const Camera& camera);
+    void shadowVolumeIntoStencil(const Scene& scene, const Camera& camera);
+
     void setCameraUniforms(const Camera& camera, ShaderProgram& shader);
     void drawObject(RenderObject& object);
 

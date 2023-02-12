@@ -1,10 +1,18 @@
 #version 410 core
 
-in vec3 normal;
-
 out vec4 fragColor;
 
-void main() {
-    vec3 n = gl_FrontFacing ? normal : -normal;
-    fragColor = vec4(n * 0.5 + 0.5, 1.0);
+float near = 0.1;
+float far = 100.0;
+
+float linearizeDepth(float depth)
+{
+    float ndc = depth * 2.0 - 1.0;
+    return (2.0 * near * far) / (far + near - ndc * (far - near));
+}
+
+void main() 
+{
+    float depth = linearizeDepth(gl_FragCoord.z) / far;
+    fragColor = vec4(vec3(depth), 1.0);
 }

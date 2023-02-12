@@ -113,8 +113,8 @@ void main()
     vec3 lightAtt = getLightColor(fragPos);
     vec3 lightDir = getLightDirection(fragPos);
 
-    vec3 ambiant = vec3(0.1) * lightColor;
+    vec3 ambiant = vec3(0.01) * lightColor * color;
     float cosTheta = max(dot(lightDir, normal), 0.0);
     
-    fragColor = vec4(lightColor * color * cosTheta + ambiant, 1.0);
+    fragColor = vec4(lightAtt * color * cosTheta + ambiant, 1.0);
 }

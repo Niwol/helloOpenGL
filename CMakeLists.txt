@@ -7,8 +7,8 @@ CMAKE_POLICY(SET CMP0072 NEW) # This will silence the Cmake Warning "Policy CMP0
 
 # Compiler stuff
 set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard" FORCE)
-#set(CMAKE_CXX_STANDARD_REQUIRED OFF)
-#set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "C++ compiler" FORCE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wextra"

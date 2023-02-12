@@ -1,4 +1,5 @@
 #include "texture.hpp"
+#include <GL/gl.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -35,4 +36,10 @@ bool Texture::load(std::string path) {
   stbi_image_free(data);
 
   return true;
+}
+
+void Texture::bind(GLenum textureNum)
+{
+    glActiveTexture(textureNum);
+    glBindTexture(GL_TEXTURE_2D, m_textureID);
 }

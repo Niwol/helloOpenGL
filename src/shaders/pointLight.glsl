@@ -1,6 +1,14 @@
 #ifndef POINT_LIGHT_GLSL
 #define POINT_LIGHT_GLSL
 
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                   POINT_LIGHT_GLSL                     *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
 struct PoinLight
 {
     vec3 position;
@@ -10,13 +18,14 @@ struct PoinLight
     float quadratic;
 };
 
-vec3 getPointLightColor(PoinLight light, vec3 fragPos)
+float getPointLightAttenuation(PoinLight light, vec3 fragPos)
 {
-    float lightDist = norm(light.position - fragPos);
-    float attenuation = 1.0 / (light.constant + light.linear * lightDist
+    float lightDist = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant 
+                             + light.linear * lightDist 
                              + light.quadratic * (lightDist * lightDist));
 
-    return lightColor * attenuation;
+    return attenuation;
 }
 
 vec3 getPointLightDirection(PoinLight light, vec3 fragPos)

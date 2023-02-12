@@ -3,7 +3,7 @@
 
 SimpleMaterial::SimpleMaterial()
 {
-    m_shaderID = DefaultShaders::Simple;
+    m_shaderID = DefaultShaders::Shader_Simple;
 }
 
 bool SimpleMaterial::usesVertexColor() 

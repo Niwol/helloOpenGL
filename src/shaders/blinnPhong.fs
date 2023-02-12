@@ -1,25 +1,118 @@
 #version 410 core
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                   POINT_LIGHT_GLSL                     *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
 
-#define MAX_POINT_LIGHTS 10
-
-// Structures
-struct PointLight {
+struct PoinLight
+{
     vec3 position;
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    float constant;
+    float linear;
+    float quadratic;
 };
 
-struct Material {
+float getPointLightAttenuation(PoinLight light, vec3 fragPos)
+{
+    float lightDist = length(light.position - fragPos);
+    float attenuation = 1.0 / (light.constant 
+                             + light.linear * lightDist 
+                             + light.quadratic * (lightDist * lightDist));
+
+    return attenuation;
+}
+
+vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
+{
+    return normalize(light.position - fragPos);
+}
+
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                      LIGHT_GLSL                        *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+    
+#define DIRECTION   0
+#define POINT       1
+#define SPOT        2
+
+
+uniform int lightType;
+
+uniform PoinLight pointLight;
+
+uniform vec3 lightColor;
+
+
+vec3 getLightColor(vec3 fragPos)
+{
+    switch(lightType)
+    {
+        case DIRECTION:
+            return vec3(0.0);
+            break;
+
+        case POINT:
+            return lightColor * getPointLightAttenuation(pointLight, fragPos);
+            break;
+
+        case SPOT:
+            return vec3(0.0);
+            break;
+    }
+}
+
+vec3 getLightDirection(vec3 fragPos)
+{
+    switch(lightType)
+    {
+        case DIRECTION:
+            return vec3(0.0);
+            break;
+
+        case POINT:
+            return getPointLightDirection(pointLight, fragPos);
+            break;
+
+        case SPOT:
+            return vec3(0.0);
+            break;
+    }
+}
+
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                        SHADER                          *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+
+struct Material
+{
     vec3 diffuse;
     vec3 specular;
     int shininess;
+
+    bool hasTexture;
+    sampler2D diffuseTexture;
+    sampler2D specularTexture;
 };
 
 // IO
 in vec3 fragPos;
 in vec3 normal;
+in vec2 uv;
 
 out vec4 fragColor;
 
@@ -27,44 +120,43 @@ out vec4 fragColor;
 // Camera
 uniform vec3 viewPos;
 
-// Lights
-uniform PointLight pointLights[MAX_POINT_LIGHTS];
-uniform int nbPointLights;
-
 // Objects
 uniform Material material;
 
-// Functions
-vec3 calculateLightContribution(PointLight pointLight);
-
-void main() {
-    vec3 result = vec3(0.0);
-
-    for(int i = 0; i < nbPointLights; i++)
-        result += calculateLightContribution(pointLights[i]);
-
-    fragColor = vec4(result, 1.0);
-}
-
-vec3 calculateLightContribution(PointLight pointLight) {
+void main() 
+{
+    vec3 diffuse;
+    vec3 specular;
     
-    vec3 normal = gl_FrontFacing ? normal : -normal;
+    if(material.hasTexture)
+    {
+        diffuse = vec3(texture(material.diffuseTexture, uv));
+        specular = vec3(texture(material.specularTexture, uv));
+    }
+    else
+    {
+        diffuse = material.diffuse;
+        specular = material.specular;
+    }
 
-    // ambient
-    vec3 ambient = material.diffuse * pointLight.ambient;
+    vec3 ambient = diffuse * lightColor * 0.01;
 
-    // diffuse
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(pointLight.position - fragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = material.diffuse * diff * pointLight.diffuse;
+    vec3 lightAtt = getLightColor(fragPos);
+    vec3 lightDir = getLightDirection(fragPos);
 
-    // specular
+    float cosTheta = max(dot(lightDir, normal), 0.0);
+
     vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-    vec3 specular = material.specular * spec * pointLight.specular;
+    vec3 reflectDir = reflect(-viewDir, normal);
+    float specularStrength = pow(max(dot(reflectDir, lightDir), 0.0),
+                                 material.shininess);
 
+    vec3 result = ambient
+                + diffuse * cosTheta
+                + specular * specularStrength;
 
-    return ambient + diffuse + specular;
+    result = result * lightAtt;
+    
+    fragColor = vec4(vec3(result), 1.0);
 }
+
