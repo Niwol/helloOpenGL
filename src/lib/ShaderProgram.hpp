@@ -6,7 +6,9 @@
 
 class ShaderProgram {
 public:
-  ShaderProgram(std::string vertexPath = "", std::string fragmentPath = "");
+  ShaderProgram(std::string vertexPath = "", 
+                std::string geometryPath = "",
+                std::string fragmentPath = "");
   ~ShaderProgram();
 
   /**
@@ -14,7 +16,7 @@ public:
    *
    * @return true on success and false otherwise
    */
-  bool createProgram(std::string vertexPath, std::string fragmentPath);
+  bool createProgram(bool useGeometry = false);
 
   /**
    * Tels opengl to use this shader program
@@ -118,6 +120,21 @@ public:
                        GL_FALSE, &mat[0][0]);
   }
 
+  inline void setVertexShader(const std::string path)
+  {
+      m_vertexPath = path;
+  }
+
+  inline void setGeometryShader(const std::string path)
+  {
+      m_geometryPath = path;
+  }
+  
+  inline void setFragmentShader(const std::string path)
+  {
+      m_fragmentPath = path;
+  }
+
 private:
   /**
    * Checks for compile errors that might have occured
@@ -125,6 +142,12 @@ private:
    */
   bool checkCompileErrors(uint id, std::string type);
 
+  bool parseSourceCode(std::string path, std::string& code);
+
 private:
   uint m_programId = 0;
+
+  std::string m_vertexPath = "";
+  std::string m_geometryPath = "";
+  std::string m_fragmentPath = "";
 };

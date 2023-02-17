@@ -27,112 +27,7 @@ bool Demo::onCreate(Application::AppUtils& appUtils)
     m_camera.setWidth(width);
     m_camera.setHeight(height);
 
-    // Scene
-    {
-        auto obj = std::make_shared<RenderObject>();
-        obj->getMesh()->to_sharp_cube();
-        m_scene.objects.push_back(obj);
-    }
-
-    {
-        auto obj = std::make_shared<RenderObject>();
-        obj->getMesh()->to_sharp_cube();
-
-        auto t = glm::mat4(1.0);
-        t = glm::translate(t, glm::vec3(6.0f, -4.0f, -2.0f));
-        t = glm::scale(t, glm::vec3(8.0f));
-
-        obj->setTransform(t);
-
-        auto material = std::make_shared<BlinnPhong>();
-        
-        material->m_diffuseTexture.load("../textures/container2.png");
-        material->m_specularTexture.load("../textures/container2_specular.png");
-        material->m_hasTexture = true;
-        material->m_shininess = 128;
-
-        obj->setMaterial(material);
-
-        m_scene.objects.push_back(obj);
-    }
-    
-    {
-        auto obj = std::make_shared<RenderObject>();
-        obj->getMesh()->to_sharp_cube();
-
-        auto t = glm::mat4(1.0);
-        t = glm::translate(t, glm::vec3(10.0f, 0.0f, 5.0f));
-        t = glm::scale(t, glm::vec3(3.0f));
-
-        obj->setTransform(t);
-
-        auto material = std::make_shared<MetallicRoughtness>();
-        
-        material->m_albedo = {1.0f, 0.0f, 1.0f};
-        material->m_roughtness = 0.8f;
-        material->m_metallic = 0.0;
-
-        obj->setMaterial(material);
-
-        m_selectedObj = obj;
-
-        m_scene.objects.push_back(obj);
-    }
-
-    {
-        auto obj = std::make_shared<RenderObject>();
-        obj->getMesh()->to_square();
-        
-        auto t = glm::mat4(1.0f);
-        t = glm::translate(t, glm::vec3(0.0f, -2.0f, 0.0f));
-        t = glm::rotate(t, -glm::pi<float>() / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-        t = glm::scale(t, glm::vec3(500.0f));
-
-        obj->setTransform(t);
-
-        m_scene.objects.push_back(obj);
-    }
-
-
-    std::vector<std::shared_ptr<Light>> lights;
-    
-    {
-        auto light = std::make_shared<PointLight>();
-        light->m_position = {5.0f, 5.0f, 2.0f};
-        light->m_color = {1.0f, 1.0f, 1.0f};
-        lights.push_back(light);
-    }
-
-    {
-        auto light = std::make_shared<PointLight>();
-        light->m_position = {6.0f, 3.0f, 0.0f};
-        light->m_color = {1.0f, 1.0f, 1.0f};
-        lights.push_back(light);
-    }
-
-    {
-        auto light = std::make_shared<PointLight>();
-        light->m_position = {1.5f, 3.0f, 0.0f};
-        light->m_color = {1.0f, 0.0f, 0.0f};
-        lights.push_back(light);
-    }
-    
-    {
-        auto light = std::make_shared<PointLight>();
-        light->m_position = {10.0f, 1.0f, 10.0f};
-        light->m_color = {0.0f, 1.0f, 0.0f};
-        lights.push_back(light);
-    }
-
-    {
-        auto light = std::make_shared<PointLight>();
-        light->m_position = {20.0f, 1.0f, 1.0f};
-        light->m_color = {0.0f, 0.0f, 1.0f};
-        lights.push_back(light);
-    }
-
-    for(auto& light : lights)
-        m_scene.lights.push_back(light);
+    scene1();
 
     setCallbacks(appUtils.window);
 
@@ -259,6 +154,13 @@ void Demo::handleInput(EventHandler& event, float dt)
         if(mat->m_roughtness > 0.0f)
             mat->m_roughtness -= 0.1f;
     }
+
+
+    // Scene
+    if(event.getKeyState(GLFW_KEY_KP_1) & PRESSED)
+        scene1();
+    if(event.getKeyState(GLFW_KEY_KP_2) & PRESSED)
+        scene2();
 }
 
 void Demo::setCallbacks(GLFWwindow* window)
@@ -273,5 +175,141 @@ void Demo::setCallbacks(GLFWwindow* window)
         self->m_camera.setWidth(width);
         self->m_camera.setHeight(height);
     });
+}
+
+void Demo::scene1()
+{
+    m_scene.objects.clear();
+    m_scene.lights.clear();
+    
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_sharp_cube();
+        m_scene.objects.push_back(obj);
+    }
+
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_sharp_cube();
+
+        auto t = glm::mat4(1.0);
+        t = glm::translate(t, glm::vec3(6.0f, -4.0f, -2.0f));
+        t = glm::scale(t, glm::vec3(8.0f));
+
+        obj->setTransform(t);
+
+        auto material = std::make_shared<BlinnPhong>();
+        
+        material->m_diffuseTexture.load("../textures/container2.png");
+        material->m_specularTexture.load("../textures/container2_specular.png");
+        material->m_hasTexture = true;
+        material->m_shininess = 128;
+
+        obj->setMaterial(material);
+
+        m_scene.objects.push_back(obj);
+    }
+    
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_sharp_cube();
+
+        auto t = glm::mat4(1.0);
+        t = glm::translate(t, glm::vec3(10.0f, 0.0f, 5.0f));
+        t = glm::scale(t, glm::vec3(3.0f));
+
+        obj->setTransform(t);
+
+        auto material = std::make_shared<MetallicRoughtness>();
+        
+        material->m_albedo = {1.0f, 0.0f, 1.0f};
+        material->m_roughtness = 0.8f;
+        material->m_metallic = 0.0;
+
+        obj->setMaterial(material);
+
+        m_selectedObj = obj;
+
+        m_scene.objects.push_back(obj);
+    }
+
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_square();
+        
+        auto t = glm::mat4(1.0f);
+        t = glm::translate(t, glm::vec3(0.0f, -2.0f, 0.0f));
+        t = glm::rotate(t, -glm::pi<float>() / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        t = glm::scale(t, glm::vec3(500.0f));
+
+        obj->setTransform(t);
+
+        m_scene.objects.push_back(obj);
+    }
+
+
+    std::vector<std::shared_ptr<Light>> lights;
+    
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {5.0f, 5.0f, 2.0f};
+        light->m_color = {1.0f, 1.0f, 1.0f};
+        lights.push_back(light);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {6.0f, 3.0f, 0.0f};
+        light->m_color = {1.0f, 1.0f, 1.0f};
+        lights.push_back(light);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {1.5f, 3.0f, 0.0f};
+        light->m_color = {1.0f, 0.0f, 0.0f};
+        lights.push_back(light);
+    }
+    
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {10.0f, 1.0f, 10.0f};
+        light->m_color = {0.0f, 1.0f, 0.0f};
+        lights.push_back(light);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {20.0f, 1.0f, 1.0f};
+        light->m_color = {0.0f, 0.0f, 1.0f};
+        lights.push_back(light);
+    }
+
+    for(auto& light : lights)
+        m_scene.lights.push_back(light);
+
+}
+
+void Demo::scene2()
+{
+    m_scene.objects.clear();
+    m_scene.lights.clear();
+
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_square();
+
+        auto t = glm::mat4(1.0f);
+        t = glm::rotate(t, -glm::pi<float>() / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+        obj->setTransform(t);
+        m_scene.objects.push_back(obj);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {0.0f, 2.0f, 0.0f};
+        m_scene.lights.push_back(light);
+    }
 }
 

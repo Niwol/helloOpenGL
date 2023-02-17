@@ -79,17 +79,17 @@ bool ShaderManager::loadDefaultShaders()
     std::vector<std::pair<std::string, std::string>> shaderNames;
     
     shaderNames.push_back(std::pair<std::string, std::string>
-                         ("black", "Black"));
+                         ("Utils/black", "Black"));
     shaderNames.push_back(std::pair<std::string, std::string>
-                         ("normalShader", "Normal"));
+                         ("Utils/normalShader", "Normal"));
     shaderNames.push_back(std::pair<std::string, std::string>
-                         ("depthShader", "Depth"));
+                         ("Utils/depthShader", "Depth"));
     shaderNames.push_back(std::pair<std::string, std::string>
-                         ("simpleShader", "Simple"));
+                         ("Materials/simpleShader", "Simple"));
     shaderNames.push_back(std::pair<std::string, std::string>
-                         ("blinnPhong", "BlinnPhong"));
+                         ("Materials/blinnPhong", "BlinnPhong"));
     shaderNames.push_back(std::pair<std::string, std::string>
-                         ("brdfShader", "MetallicRoughness"));
+                         ("Materials/brdfShader", "MetallicRoughness"));
 
     uint32_t currentShaderID = m_nextShaderID;
     m_nextShaderID = 1;
@@ -100,8 +100,9 @@ bool ShaderManager::loadDefaultShaders()
         std::string name = pair.second;
 
         auto shader = std::make_shared<ShaderProgram>();
-        bool res = shader->createProgram(pathName + ".vs",
-                                         pathName + ".fs");
+        shader->setVertexShader(pathName + ".vs");
+        shader->setFragmentShader(pathName + ".fs");
+        bool res = shader->createProgram();
 
     
         if(!res)

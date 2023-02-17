@@ -24,6 +24,9 @@ public:
     void handleInput(EventHandler& event, float dt);
     void setCallbacks(GLFWwindow* window);
 
+    void scene1();
+    void scene2();
+
 private:
     Scene m_scene;
     Camera m_camera;
