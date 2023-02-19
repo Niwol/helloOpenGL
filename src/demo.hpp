@@ -26,6 +26,7 @@ public:
 
     void scene1();
     void scene2();
+    void scene3();
 
 private:
     Scene m_scene;

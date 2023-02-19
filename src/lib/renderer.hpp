@@ -7,6 +7,7 @@
 #include "lib/ShaderManager.hpp"
 #include "lib/Light/Light.hpp"
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <vector>
@@ -72,7 +73,9 @@ private:
     void depthRender(const Scene& scene, const Camera& camera);
 
     void zPrepass(const Scene& scene, const Camera& camera);
-    void shadowVolumeIntoStencil(const Scene& scene, const Camera& camera);
+    void shadowVolumeIntoStencil(const Scene& scene, 
+                                 std::shared_ptr<Light> light, 
+                                 const Camera& camera);
 
     void setCameraUniforms(const Camera& camera, ShaderProgram& shader);
     void drawObject(RenderObject& object);
@@ -88,6 +91,7 @@ private:
     int m_height;
 
     uint m_nextID;
+    uint32_t m_shadowShaderID;
 
     std::unique_ptr<ShaderManager> m_shaderManager;
 };

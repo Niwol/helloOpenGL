@@ -114,9 +114,15 @@ void Demo::handleInput(EventHandler& event, float dt)
         m_drawLines = !m_drawLines;
         
         if(m_drawLines)
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            //glDisable(GL_CULL_FACE);
+        }
         else
+        {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            //glEnable(GL_CULL_FACE);
+        }
     }
 
     if(event.getKeyState(GLFW_KEY_N) & PRESSED)
@@ -161,6 +167,8 @@ void Demo::handleInput(EventHandler& event, float dt)
         scene1();
     if(event.getKeyState(GLFW_KEY_KP_2) & PRESSED)
         scene2();
+    if(event.getKeyState(GLFW_KEY_KP_3) & PRESSED)
+        scene3();
 }
 
 void Demo::setCallbacks(GLFWwindow* window)
@@ -313,3 +321,61 @@ void Demo::scene2()
     }
 }
 
+void Demo::scene3()
+{
+    m_scene.objects.clear();
+    m_scene.lights.clear();
+
+    std::vector<GLfloat> vertices = 
+    {
+        -0.5f, -0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+         0.0f,  0.3f, 0.0f,
+    };
+
+    std::vector<GLfloat> normals = 
+    {
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+    };
+
+    std::vector<GLuint> indices =
+    {
+        0, 1, 2,
+    };
+
+    {
+        auto obj = std::make_shared<RenderObject>();
+        auto mesh = obj->getMesh();
+        mesh->set_vertices(vertices);
+        mesh->set_normals(normals);
+        mesh->set_indices(indices, GL_TRIANGLES);
+
+        auto t = glm::mat4(1.0f);
+        t = glm::rotate(t, -glm::pi<float>() / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+
+        obj->setTransform(t);
+        m_scene.objects.push_back(obj);
+    }
+
+    {
+        auto obj = std::make_shared<RenderObject>();
+        obj->getMesh()->to_square();
+        
+        auto t = glm::mat4(1.0f);
+        t = glm::translate(t, glm::vec3(0.0f, -2.0f, 0.0f));
+        t = glm::rotate(t, -glm::pi<float>() / 2.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+        t = glm::scale(t, glm::vec3(10.0f));
+
+        obj->setTransform(t);
+
+        m_scene.objects.push_back(obj);
+    }
+
+    {
+        auto light = std::make_shared<PointLight>();
+        light->m_position = {0.0f, 2.0f, 0.0f};
+        m_scene.lights.push_back(light);
+    }
+}

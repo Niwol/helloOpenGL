@@ -13,6 +13,16 @@ Renderer::Renderer(int width, int height)
     : m_width{width}, m_height{height}, m_nextID{1} 
 {
     m_shaderManager = std::make_unique<ShaderManager>();
+
+    auto shadowShader = std::make_shared<ShaderProgram>();
+    shadowShader->setVertexShader("../src/shaders/Utils/shadowVolume.vs");
+    shadowShader->setGeometryShader("../src/shaders/Utils/shadowVolume.gs");
+    shadowShader->setFragmentShader("../src/shaders/Utils/shadowVolume.fs");
+
+    shadowShader->createProgram(true);
+
+    m_shadowShaderID = m_shaderManager->addShaderProgram(shadowShader, 
+                                                         "ShadowVolume");
 }
 
 Renderer::~Renderer() {}
@@ -153,7 +163,7 @@ void Renderer::render(const Scene& scene, const Camera& camera,
                       RenderMode renderMode) 
 {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     switch (renderMode) 
     {
@@ -178,18 +188,24 @@ void Renderer::render(const Scene& scene, const Camera& camera,
 
 void Renderer::defaultRender(const Scene& scene, const Camera& camera)
 {
+    glEnable(GL_STENCIL_TEST);
+
     // Z pepass
+    glDepthMask(GL_TRUE);
     zPrepass(scene, camera);
-
-    // Shadow volume stencil
-    shadowVolumeIntoStencil(scene, camera);
-
-    glDepthFunc(GL_EQUAL);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
 
     for(auto& light : scene.lights)
     {        
+        shadowVolumeIntoStencil(scene, light, camera);
+
+        glStencilFunc(GL_EQUAL, 0x0, 0xff);
+        //glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+        glDepthFunc(GL_EQUAL);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+
         for(auto& ro : scene.objects)
         {
             auto material = ro->getMaterial();
@@ -206,10 +222,12 @@ void Renderer::defaultRender(const Scene& scene, const Camera& camera)
 
             drawObject(*ro);
         }
+
+        glDisable(GL_BLEND);
+        glDepthFunc(GL_LESS);
+        glClear(GL_STENCIL_BUFFER_BIT);
     }
 
-    glDisable(GL_BLEND);
-    glDepthFunc(GL_LESS);
 
     glBindVertexArray(0);
 }
@@ -246,6 +264,8 @@ void Renderer::depthRender(const Scene& scene, const Camera& camera)
 
 void Renderer::zPrepass(const Scene& scene, const Camera& camera)
 {
+    //glDrawBuffer(GL_NONE);
+
     auto shader = m_shaderManager->getShader(DefaultShaders::Shader_Black).value();
 
     shader->use();
@@ -260,10 +280,39 @@ void Renderer::zPrepass(const Scene& scene, const Camera& camera)
     glBindVertexArray(0);
 }
 
-void Renderer::shadowVolumeIntoStencil(const Scene& scene, const Camera& camera)
+void Renderer::shadowVolumeIntoStencil(const Scene& scene, 
+                                       std::shared_ptr<Light> light,
+                                       const Camera& camera)
 {
-    (void)scene;
-    (void)camera;
+    glDrawBuffer(GL_NONE);
+
+    glDepthMask(GL_FALSE);
+    glEnable(GL_DEPTH_CLAMP);
+    glDisable(GL_CULL_FACE);
+
+    glStencilFunc(GL_ALWAYS, 0, 0xff);
+
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+
+    auto shader = m_shaderManager->getShader(m_shadowShaderID).value();
+    
+    shader->use();
+
+    setCameraUniforms(camera, *shader);
+    light->setShaderUniforms(*shader);
+    
+    for(auto& obj : scene.objects)
+    {
+        shader->setMat4("model", obj->getModelMatrix());
+        drawObject(*obj);
+    }
+
+    glDisable(GL_DEPTH_CLAMP);
+    glEnable(GL_CULL_FACE);
+
+    glDepthMask(GL_TRUE);
+    glDrawBuffer(GL_BACK);
 }
 
 void Renderer::setCameraUniforms(const Camera& camera, ShaderProgram& shader)
