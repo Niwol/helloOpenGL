@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <memory>
 
+#include <glm/glm.hpp>
+
 #include "lib/ShaderManager.hpp"
 #include "lib/ShaderProgram.hpp"
 #include "opengl_stuff.h"
@@ -17,10 +19,10 @@ public:
 
     void selectShader(const ShaderManager& shaderManager);
 
-
     virtual bool usesVertexColor() = 0;
 
     virtual void setShaderUniforms(ShaderProgram& shader) = 0;
+    virtual void setShaderAmbient(ShaderProgram& shader) = 0;
 
     virtual std::string getShaderName() = 0;
 

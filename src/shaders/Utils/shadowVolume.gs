@@ -1,4 +1,28 @@
 #version 410 core
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                DIRECTIONAL_LIGHT_GLSL                  *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+struct DirectionalLight
+{
+    vec3 direction;
+};
+
+float getDirectionalLightAttenuation(DirectionalLight light, vec3 fragPos)
+{
+    return 1.0;
+}
+
+vec3 getDirectionalLightDirection(DirectionalLight light, vec3 fragPos)
+{
+    return normalize(-light.direction);
+}
+
 /* ******************************************************** *
  * *                                                        *
  * *                                                        *
@@ -34,6 +58,51 @@ vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
 /* ******************************************************** *
  * *                                                        *
  * *                                                        *
+ * *                    SPOT_LIGHT_GLSL                     *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+struct SpotLight
+{
+    vec3 position;
+
+    vec3 direction;
+    float cutOffAngle;
+    float outerCutOffAngle;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+float getSpotLightAttenuation(SpotLight light, vec3 fragPos)
+{
+    vec3 lightDir = light.position - fragPos;
+    float lightDist = length(lightDir);
+    lightDir = normalize(lightDir);
+
+    float attenuation = 1.0 / (light.constant 
+                             + light.linear * lightDist 
+                             + light.quadratic * (lightDist * lightDist));
+
+    vec3 spotDir = normalize(light.direction);
+    
+    float cosTheta = dot(lightDir, -spotDir);
+    float epsilon = light.cutOffAngle - light.outerCutOffAngle;
+    float intesity = clamp((cosTheta - light.outerCutOffAngle) / epsilon, 0.0, 1.0);
+
+    return attenuation * intesity;
+}
+
+vec3 getSpotLightDirection(SpotLight light, vec3 fragPos)
+{
+    return normalize(light.position - fragPos);
+}
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
  * *                      LIGHT_GLSL                        *
  * *                                                        *
  * *                                                        *
@@ -46,7 +115,9 @@ vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
 
 uniform int lightType;
 
+uniform DirectionalLight directionalLight;
 uniform PoinLight pointLight;
+uniform SpotLight spotLight;
 
 uniform vec3 lightColor;
 
@@ -56,7 +127,7 @@ vec3 getLightColor(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return lightColor * getDirectionalLightAttenuation(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -64,7 +135,7 @@ vec3 getLightColor(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return lightColor * getSpotLightAttenuation(spotLight, fragPos);
             break;
     }
 }
@@ -74,7 +145,7 @@ vec3 getLightDirection(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return getDirectionalLightDirection(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -82,7 +153,7 @@ vec3 getLightDirection(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return getSpotLightDirection(spotLight, fragPos);
             break;
     }
 }
@@ -116,16 +187,16 @@ void emitQuad(vec3 startVertex, vec3 endVertex, vec3 normal)
     gl_Position = projection * view * vec4(startVertex - lightDir * EPSYLON - normal * EPSYLON, 1.0);
     EmitVertex();
     
-    gl_Position = projection * view * vec4(startVertex - lightDir * SHADOW_SIZE, 1.0);
-    //gl_Position = projection * vec4(-lightDir, 0.0);
+    //gl_Position = projection * view * vec4(startVertex - lightDir * SHADOW_SIZE, 1.0);
+    gl_Position = projection * view * vec4(-lightDir, 0.0);
     EmitVertex();
 
     lightDir = getLightDirection(endVertex);
     gl_Position = projection * view * vec4(endVertex - lightDir * EPSYLON - normal * EPSYLON, 1.0);
     EmitVertex();
 
-    gl_Position = projection * view * vec4(endVertex - lightDir * SHADOW_SIZE, 1.0);
-    //gl_Position = projection * vec4(-lightDir, 0.0);
+    //gl_Position = projection * view * vec4(endVertex - lightDir * SHADOW_SIZE, 1.0);
+    gl_Position = projection * view * vec4(-lightDir, 0.0);
     EmitVertex();
     
     EndPrimitive();
@@ -161,15 +232,18 @@ void main()
 
         // Back
         lightDir = getLightDirection(gs_in[0].worldPos);
-        gl_Position = projection * view * vec4(gs_in[0].worldPos - lightDir * SHADOW_SIZE, 1.0);
+        //gl_Position = projection * view * vec4(gs_in[0].worldPos - lightDir * SHADOW_SIZE, 1.0);
+        gl_Position = projection * view * vec4(-lightDir, 0.0);
         EmitVertex();
         
         lightDir = getLightDirection(gs_in[2].worldPos);
-        gl_Position = projection * view * vec4(gs_in[2].worldPos - lightDir * SHADOW_SIZE, 1.0);
+        //gl_Position = projection * view * vec4(gs_in[2].worldPos - lightDir * SHADOW_SIZE, 1.0);
+        gl_Position = projection * view * vec4(-lightDir, 0.0);
         EmitVertex();
 
         lightDir = getLightDirection(gs_in[1].worldPos);
-        gl_Position = projection * view * vec4(gs_in[1].worldPos - lightDir * SHADOW_SIZE, 1.0);
+        //gl_Position = projection * view * vec4(gs_in[1].worldPos - lightDir * SHADOW_SIZE, 1.0);
+        gl_Position = projection * view * vec4(-lightDir, 0.0);
         EmitVertex();
 
         EndPrimitive();

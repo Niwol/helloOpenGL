@@ -1,4 +1,6 @@
 #include "mesh.hpp"
+#include "ext/quaternion_geometric.hpp"
+#include <cmath>
 
 Mesh::Mesh() 
 {
@@ -23,6 +25,128 @@ Mesh::~Mesh()
   glDeleteBuffers(1, &m_CBO);
 
   glDeleteVertexArrays(1, &m_VAO);
+}
+
+void Mesh::to_sphere(int nbRows, int nbCols)
+{
+    if(nbRows < 3)
+        nbRows = 3;
+    if(nbCols < 3)
+        nbCols = 3;
+
+
+    m_vertices.clear();
+    m_normals.clear();
+    m_uvCoords.clear();
+    m_indices.clear();
+
+    // Bottom vertex
+    m_vertices.push_back(0.0f);
+    m_vertices.push_back(-0.5f);
+    m_vertices.push_back(0.0f);
+
+    m_normals.push_back(0.0f);
+    m_normals.push_back(-0.5f);
+    m_normals.push_back(0.0f);
+
+    m_uvCoords.push_back(0.0f);
+    m_uvCoords.push_back(0.0f);
+
+    for(int i = 1; i < nbRows - 1; i++)
+    {
+        for(int j = 0; j < nbCols; j++)
+        {
+            float u = float(j) / float(nbCols);
+            float v = float(i) / float(nbRows - 1);
+
+            float theta = u * 2.0f * M_PI;
+            float phi = v * M_PI - M_PI / 2.0f;
+
+            glm::vec3 vertex;
+            vertex.x = std::cos(theta) * std::cos(phi);
+            vertex.y = std::sin(phi);
+            vertex.z = std::sin(theta) * std::cos(phi);
+
+            vertex *= 0.5f;
+
+            m_vertices.push_back(vertex.x);
+            m_vertices.push_back(vertex.y);
+            m_vertices.push_back(vertex.z);
+
+            vertex = glm::normalize(vertex);
+            m_normals.push_back(vertex.x);
+            m_normals.push_back(vertex.y);
+            m_normals.push_back(vertex.z);
+
+            m_uvCoords.push_back(u);
+            m_uvCoords.push_back(v);
+        }
+    }
+
+    // Top vertex
+    m_vertices.push_back(0.0f);
+    m_vertices.push_back(0.5f);
+    m_vertices.push_back(0.0f);
+
+    m_normals.push_back(0.0f);
+    m_normals.push_back(0.5f);
+    m_normals.push_back(0.0f);
+
+    m_uvCoords.push_back(0.0f);
+    m_uvCoords.push_back(1.0f);
+
+    // Indices
+    
+    // Bottom
+    GLuint startOffset = 1;
+    for(int i = 0; i < nbCols; i++)
+    {
+        GLuint idx0 = 0;
+        GLuint idx1 = (i + 1) % nbCols + startOffset;
+        GLuint idx2 = (i) + startOffset;
+
+        m_indices.push_back(idx0);
+        m_indices.push_back(idx2);
+        m_indices.push_back(idx1);
+    }
+
+    // Center
+    for(int i = 0; i < nbRows - 3; i++)
+    {
+        for(int j = 0; j < nbCols; j++)
+        {
+            GLuint idx0 = j + i * nbCols + startOffset;
+            GLuint idx1 = j + i * nbCols + nbCols + startOffset;
+            GLuint idx2 = (j + 1) % nbCols + i * nbCols + nbCols + startOffset;
+            GLuint idx3 = (j + 1) % nbCols + i * nbCols + startOffset;
+
+            m_indices.push_back(idx0);
+            m_indices.push_back(idx1);
+            m_indices.push_back(idx2);
+
+            m_indices.push_back(idx0);
+            m_indices.push_back(idx2);
+            m_indices.push_back(idx3);
+        }
+    }
+
+    // Top
+    GLuint topVertex = m_vertices.size() / 3 - 1;
+    startOffset = topVertex - nbCols;
+    for(int i = 0; i < nbCols; i++)
+    {
+        GLuint idx0 = topVertex;
+        GLuint idx1 = (i + 1) % nbCols + startOffset;
+        GLuint idx2 = (i) + startOffset;
+
+        m_indices.push_back(idx0);
+        m_indices.push_back(idx1);
+        m_indices.push_back(idx2);
+    }
+
+    m_nbIndices = m_indices.size();
+    m_mode = GL_TRIANGLES;
+    commit();
 }
 
 void Mesh::to_cube() 

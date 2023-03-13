@@ -30,8 +30,23 @@ void BlinnPhong::setShaderUniforms(ShaderProgram &shader)
         shader.setVec3("material.specular", m_specular);
     }
 
-    shader.setInt("material.hasTexture", m_hasTexture);
+    shader.setBool("material.hasTexture", m_hasTexture);
     shader.setInt("material.shininess", m_shininess);
+}
+
+void BlinnPhong::setShaderAmbient(ShaderProgram &shader)
+{
+    if(m_hasTexture)
+    {
+        m_diffuseTexture.bind(GL_TEXTURE0);
+        shader.setInt("tex", 0);
+    }
+    else
+    {
+        shader.setVec3("color", m_diffuse);
+    }
+
+    shader.setBool("hasTexture", m_hasTexture);
 }
 
 std::string BlinnPhong::getShaderName()

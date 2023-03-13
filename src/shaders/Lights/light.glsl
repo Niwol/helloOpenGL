@@ -16,7 +16,9 @@
 
 uniform int lightType;
 
+uniform DirectionalLight directionalLight;
 uniform PoinLight pointLight;
+uniform SpotLight spotLight;
 
 uniform vec3 lightColor;
 
@@ -26,7 +28,7 @@ vec3 getLightColor(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return lightColor * getDirectionalLightAttenuation(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -34,7 +36,7 @@ vec3 getLightColor(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return lightColor * getSpotLightAttenuation(spotLight, fragPos);
             break;
     }
 }
@@ -44,7 +46,7 @@ vec3 getLightDirection(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return getDirectionalLightDirection(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -52,7 +54,7 @@ vec3 getLightDirection(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return getSpotLightDirection(spotLight, fragPos);
             break;
     }
 }

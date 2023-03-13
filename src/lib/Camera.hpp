@@ -36,6 +36,11 @@ public:
         return m_position;
     }
 
+    inline glm::vec3 getFront() const
+    {
+        return m_direction;
+    }
+
     inline int getWidth() const
     {
         return m_width;

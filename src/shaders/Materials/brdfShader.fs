@@ -1,4 +1,28 @@
 #version 410 core
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                DIRECTIONAL_LIGHT_GLSL                  *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+struct DirectionalLight
+{
+    vec3 direction;
+};
+
+float getDirectionalLightAttenuation(DirectionalLight light, vec3 fragPos)
+{
+    return 1.0;
+}
+
+vec3 getDirectionalLightDirection(DirectionalLight light, vec3 fragPos)
+{
+    return normalize(-light.direction);
+}
+
 /* ******************************************************** *
  * *                                                        *
  * *                                                        *
@@ -31,6 +55,50 @@ vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
     return normalize(light.position - fragPos);
 }
 
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                    SPOT_LIGHT_GLSL                     *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+struct SpotLight
+{
+    vec3 position;
+
+    vec3 direction;
+    float cutOffAngle;
+    float outerCutOffAngle;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+float getSpotLightAttenuation(SpotLight light, vec3 fragPos)
+{
+    vec3 lightDir = light.position - fragPos;
+    float lightDist = length(lightDir);
+    lightDir = normalize(lightDir);
+
+    float attenuation = 1.0 / (light.constant 
+                             + light.linear * lightDist 
+                             + light.quadratic * (lightDist * lightDist));
+
+    vec3 spotDir = normalize(light.direction);
+    
+    float cosTheta = dot(lightDir, -spotDir);
+    float epsilon = light.cutOffAngle - light.outerCutOffAngle;
+    float intesity = clamp((cosTheta - light.outerCutOffAngle) / epsilon, 0.0, 1.0);
+
+    return attenuation * intesity;
+}
+
+vec3 getSpotLightDirection(SpotLight light, vec3 fragPos)
+{
+    return normalize(light.position - fragPos);
+}
 
 /* ******************************************************** *
  * *                                                        *
@@ -47,7 +115,9 @@ vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
 
 uniform int lightType;
 
+uniform DirectionalLight directionalLight;
 uniform PoinLight pointLight;
+uniform SpotLight spotLight;
 
 uniform vec3 lightColor;
 
@@ -57,7 +127,7 @@ vec3 getLightColor(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return lightColor * getDirectionalLightAttenuation(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -65,7 +135,7 @@ vec3 getLightColor(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return lightColor * getSpotLightAttenuation(spotLight, fragPos);
             break;
     }
 }
@@ -75,7 +145,7 @@ vec3 getLightDirection(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return getDirectionalLightDirection(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -83,7 +153,7 @@ vec3 getLightDirection(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return getSpotLightDirection(spotLight, fragPos);
             break;
     }
 }
@@ -126,11 +196,16 @@ uniform Material material;
 
 
 // Functions
-vec3 calculateLightContribution(PointLight light);
 float D(float alpha, vec3 N, vec3 H);
 float G(float alpha, vec3 V, vec3 N, vec3 L, vec3 H);
 float chiplus(float x);
 
+float vis(float alpha, vec3 V, vec3 N, vec3 L, vec3 H);
+vec3 specular_brdf(float alpha, vec3 V, vec3 N, vec3 L, vec3 H);
+vec3 diffuse_brdf(vec3 color);
+
+vec3 fresnel_mix(vec3 layer, vec3 base, float ior, float VdotH);
+vec3 conductor_fresnel(vec3 f0, vec3 bsdf, float VdotH);
 
 void main() 
 {
@@ -138,6 +213,9 @@ void main()
     vec3 L = getLightDirection(fragPos);
     vec3 N = normalize(normal);
     vec3 H = normalize(L + V);
+
+    float VdotH = dot(V, H);
+    float cosTheta = max(dot(N, L), 0.0);
 
     vec3 c_diff = mix(material.albedo, vec3(0.0), material.metallic);
     vec3 f0 = mix(vec3(0.04), material.albedo, material.metallic);
@@ -151,7 +229,23 @@ void main()
     vec3 result = dot(N, L) * (f_diffuse + f_specular);
     result = result * getLightColor(fragPos);
 
-    fragColor = vec4(result, 1.0);
+    vec3 lightAtt = getLightColor(fragPos);
+//
+//    float alpha = material.roughness * material.roughness;
+//
+//    vec3 spec_brdf = specular_brdf(alpha, V, N, L, H);
+//
+//    vec3 layer = spec_brdf;
+//    vec3 base = diffuse_brdf(material.albedo);
+//
+//    vec3 bsdf = spec_brdf;
+//
+//    vec3 bsdf0 = fresnel_mix(layer, base, 1.5, VdotH);
+//    vec3 bsdf1 = conductor_fresnel(bsdf, material.albedo, VdotH);
+//
+//    vec3 result = mix(bsdf0, bsdf1, material.metallic);
+
+    fragColor = vec4(result * lightAtt * cosTheta, 1.0);
 }
 
 
@@ -185,6 +279,46 @@ float G(float alpha, vec3 V, vec3 N, vec3 L, vec3 H) {
     return nomi / denomi;
 }
 
-float chiplus(float x) {
+float vis(float alpha, vec3 V, vec3 N, vec3 L, vec3 H)
+{
+    float NdotL = dot(N, L);
+    float HdotL = dot(H, L);
+    float NdotV = dot(N, V);
+    float HdotV = dot(H, V);
+
+    float alpha_sq = alpha * alpha;
+
+    float nomi = chiplus(HdotL) * chiplus(HdotV); 
+
+    float denomi =    abs(NdotL) + sqrt(alpha_sq + (1 - alpha_sq) * pow(NdotL, 2))
+                    * abs(NdotV) + sqrt(alpha_sq + (1 - alpha_sq) * pow(NdotV, 2));
+
+    return nomi / denomi;
+}
+
+vec3 specular_brdf(float alpha, vec3 V, vec3 N, vec3 L, vec3 H)
+{
+    return material.albedo * vis(alpha, V, N, L, H) * D(alpha, N, H);
+}
+
+vec3 diffuse_brdf(vec3 color)
+{
+    return (1.0 / PI) * color;
+}
+
+vec3 fresnel_mix(vec3 layer, vec3 base, float ior, float VdotH)
+{
+    float f0 = pow(((1.0 - ior) / (1.0 + ior)), 2);
+    float fr = f0 + pow((1.0 - f0) * (1.0 - abs(VdotH)), 5);
+    return mix(base, layer, fr);
+}
+
+vec3 conductor_fresnel(vec3 f0, vec3 bsdf, float VdotH)
+{
+    return bsdf * (f0 + (1.0 - f0) * pow(1.0 - abs(VdotH), 5));
+}
+
+float chiplus(float x) 
+{
     return x > 0.0 ? 1.0 : 0.0;
 }

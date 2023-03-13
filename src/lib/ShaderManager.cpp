@@ -90,6 +90,8 @@ bool ShaderManager::loadDefaultShaders()
                          ("Materials/blinnPhong", "BlinnPhong"));
     shaderNames.push_back(std::pair<std::string, std::string>
                          ("Materials/brdfShader", "MetallicRoughness"));
+    shaderNames.push_back(std::pair<std::string, std::string>
+                         ("Utils/ambient", "Ambient"));
 
     uint32_t currentShaderID = m_nextShaderID;
     m_nextShaderID = 1;

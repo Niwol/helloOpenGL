@@ -11,12 +11,13 @@
 
 enum DefaultShaders
 {
-    Shader_Black               = 1,
-    Shader_Normal              = 2,
-    Shader_Depth               = 3,
-    Shader_Simple              = 4,
-    Shader_BlinnPhong          = 5,
-    Shader_MetallicRoughness   = 6,
+    Shader_Black                = 1,
+    Shader_Normal               = 2,
+    Shader_Depth                = 3,
+    Shader_Simple               = 4,
+    Shader_BlinnPhong           = 5,
+    Shader_MetallicRoughness    = 6,
+    Shader_Ambient              = 7,
     Shader_Total,
 };
 

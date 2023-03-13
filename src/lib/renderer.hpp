@@ -76,6 +76,7 @@ private:
     void shadowVolumeIntoStencil(const Scene& scene, 
                                  std::shared_ptr<Light> light, 
                                  const Camera& camera);
+    void ambientRender(const Scene& scene, const Camera& camera);
 
     void setCameraUniforms(const Camera& camera, ShaderProgram& shader);
     void drawObject(RenderObject& object);

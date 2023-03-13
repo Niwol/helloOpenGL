@@ -50,9 +50,9 @@ bool Application::construct(std::unique_ptr<Runable> runable, const Application:
     // OpenGL stuff
     glEnable(GL_DEPTH_TEST);
 
-    //  glEnable(GL_CULL_FACE);
-    //  glCullFace(GL_BACK);
-    //  glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
     
     // Runable
     m_runable = std::move(runable);

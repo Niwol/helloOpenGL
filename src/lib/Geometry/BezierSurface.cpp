@@ -9,11 +9,12 @@ BezierSurface::BezierSurface(uint nbPoints_line, uint nbPoints_row)
 BezierSurface::~BezierSurface() {}
 
 void BezierSurface::transform(glm::mat4 transform) {
-  m_RO_surface->transform(transform);
-
-  for (auto &ro : m_ROs_controlPoints) {
-    ro->transform(transform);
-  }
+    (void)transform;
+//  m_RO_surface->transform(transform);
+//
+//  for (auto &ro : m_ROs_controlPoints) {
+//    ro->transform(transform);
+//  }
 }
 
 void BezierSurface::addLine(std::vector<glm::vec3> points, bool bGenSurface) {
@@ -35,7 +36,7 @@ void BezierSurface::addLine(std::vector<glm::vec3> points, bool bGenSurface) {
       auto t = glm::mat4(1.0f);
       t = glm::translate(t, p);
       t = glm::scale(t, glm::vec3(0.05, 0.05, 0.05));
-      ro->transform(t);
+      //ro->transform(t);
       m_ROs_controlPoints.push_back(ro);
     }
 
@@ -60,7 +61,7 @@ void BezierSurface::setPoint(glm::vec3 point, uint index) {
     t = glm::translate(t, point);
     t = glm::scale(t, glm::vec3(0.05f));
     m_ROs_controlPoints[index]->resetModel();
-    m_ROs_controlPoints[index]->transform(t);
+    //m_ROs_controlPoints[index]->transform(t);
   } else {
     std::cout << "WARNING: BezierSurface::setPoint: index out of range"
               << std::endl;
@@ -78,7 +79,7 @@ void BezierSurface::move(glm::vec3 direction, uint index) {
     t = glm::translate(t, point);
     t = glm::scale(t, glm::vec3(0.05f));
     m_ROs_controlPoints[index]->resetModel();
-    m_ROs_controlPoints[index]->transform(t);
+    //m_ROs_controlPoints[index]->transform(t);
 
   } else {
     std::cout << "WARNING: BezierSurface::setPoint: index out of range"

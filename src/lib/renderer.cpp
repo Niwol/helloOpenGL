@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "fwd.hpp"
 #include "lib/Camera.hpp"
 #include "lib/RenderObject.hpp"
 #include "lib/Scene.hpp"
@@ -7,6 +8,7 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <cstdint>
+#include <cstdio>
 #include <memory>
 
 Renderer::Renderer(int width, int height)
@@ -199,7 +201,6 @@ void Renderer::defaultRender(const Scene& scene, const Camera& camera)
         shadowVolumeIntoStencil(scene, light, camera);
 
         glStencilFunc(GL_EQUAL, 0x0, 0xff);
-        //glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
         glDepthFunc(GL_EQUAL);
@@ -228,6 +229,7 @@ void Renderer::defaultRender(const Scene& scene, const Camera& camera)
         glClear(GL_STENCIL_BUFFER_BIT);
     }
 
+    ambientRender(scene, camera);
 
     glBindVertexArray(0);
 }
@@ -313,6 +315,34 @@ void Renderer::shadowVolumeIntoStencil(const Scene& scene,
 
     glDepthMask(GL_TRUE);
     glDrawBuffer(GL_BACK);
+}
+
+void Renderer::ambientRender(const Scene& scene, const Camera& camera)
+{
+    glDepthFunc(GL_EQUAL);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    auto shader = m_shaderManager->getShader(DefaultShaders::Shader_Ambient).value();
+
+    shader->use();
+
+    setCameraUniforms(camera, *shader);
+
+    for(auto& light : scene.lights)
+    {
+        for(auto& obj : scene.objects)
+        {
+            shader->setVec3("lightColor", light->m_color);
+            obj->getMaterial()->setShaderAmbient(*shader);
+            shader->setMat4("model", obj->getModelMatrix());
+            
+            drawObject(*obj);
+        }
+    }
+
+    glDisable(GL_BLEND);
+    glDepthFunc(GL_LESS);
 }
 
 void Renderer::setCameraUniforms(const Camera& camera, ShaderProgram& shader)

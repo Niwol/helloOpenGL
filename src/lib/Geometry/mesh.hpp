@@ -19,6 +19,8 @@ public:
 
   ~Mesh();
 
+  void to_sphere(int nbRows = 20, int nbCols = 40);
+
   /**
    * Transformes the mesh into a cube
    */

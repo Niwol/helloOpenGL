@@ -1,4 +1,28 @@
 #version 410 core
+
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                DIRECTIONAL_LIGHT_GLSL                  *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+struct DirectionalLight
+{
+    vec3 direction;
+};
+
+float getDirectionalLightAttenuation(DirectionalLight light, vec3 fragPos)
+{
+    return 1.0;
+}
+
+vec3 getDirectionalLightDirection(DirectionalLight light, vec3 fragPos)
+{
+    return normalize(-light.direction);
+}
+
 /* ******************************************************** *
  * *                                                        *
  * *                                                        *
@@ -31,6 +55,50 @@ vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
     return normalize(light.position - fragPos);
 }
 
+/* ******************************************************** *
+ * *                                                        *
+ * *                                                        *
+ * *                    SPOT_LIGHT_GLSL                     *
+ * *                                                        *
+ * *                                                        *
+ * ******************************************************** */
+
+struct SpotLight
+{
+    vec3 position;
+
+    vec3 direction;
+    float cutOffAngle;
+    float outerCutOffAngle;
+
+    float constant;
+    float linear;
+    float quadratic;
+};
+
+float getSpotLightAttenuation(SpotLight light, vec3 fragPos)
+{
+    vec3 lightDir = light.position - fragPos;
+    float lightDist = length(lightDir);
+    lightDir = normalize(lightDir);
+
+    float attenuation = 1.0 / (light.constant 
+                             + light.linear * lightDist 
+                             + light.quadratic * (lightDist * lightDist));
+
+    vec3 spotDir = normalize(light.direction);
+    
+    float cosTheta = dot(lightDir, -spotDir);
+    float epsilon = light.cutOffAngle - light.outerCutOffAngle;
+    float intesity = clamp((cosTheta - light.outerCutOffAngle) / epsilon, 0.0, 1.0);
+
+    return attenuation * intesity;
+}
+
+vec3 getSpotLightDirection(SpotLight light, vec3 fragPos)
+{
+    return normalize(light.position - fragPos);
+}
 
 /* ******************************************************** *
  * *                                                        *
@@ -47,7 +115,9 @@ vec3 getPointLightDirection(PoinLight light, vec3 fragPos)
 
 uniform int lightType;
 
+uniform DirectionalLight directionalLight;
 uniform PoinLight pointLight;
+uniform SpotLight spotLight;
 
 uniform vec3 lightColor;
 
@@ -57,7 +127,7 @@ vec3 getLightColor(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return lightColor * getDirectionalLightAttenuation(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -65,7 +135,7 @@ vec3 getLightColor(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return lightColor * getSpotLightAttenuation(spotLight, fragPos);
             break;
     }
 }
@@ -75,7 +145,7 @@ vec3 getLightDirection(vec3 fragPos)
     switch(lightType)
     {
         case DIRECTION:
-            return vec3(0.0);
+            return getDirectionalLightDirection(directionalLight, fragPos);
             break;
 
         case POINT:
@@ -83,7 +153,7 @@ vec3 getLightDirection(vec3 fragPos)
             break;
 
         case SPOT:
-            return vec3(0.0);
+            return getSpotLightDirection(spotLight, fragPos);
             break;
     }
 }
@@ -139,7 +209,6 @@ void main()
         specular = material.specular;
     }
 
-    vec3 ambient = diffuse * lightColor * 0.01;
 
     vec3 lightAtt = getLightColor(fragPos);
     vec3 lightDir = getLightDirection(fragPos);
@@ -151,8 +220,7 @@ void main()
     float specularStrength = pow(max(dot(reflectDir, lightDir), 0.0),
                                  material.shininess);
 
-    vec3 result = ambient
-                + diffuse * cosTheta
+    vec3 result = diffuse * cosTheta
                 + specular * specularStrength;
 
     result = result * lightAtt;

@@ -7,6 +7,7 @@
 #include "lib/Materials/BlinnPhong.hpp"
 #include "lib/Materials/SimpleMaterial.hpp"
 
+#include "lib/Transform.hpp"
 #include "opengl_stuff.h"
 #include <glm.hpp>
 
@@ -18,11 +19,6 @@ class RenderObject {
 public:
     RenderObject();
     ~RenderObject();
-
-    /**
-     * Applyes the transform matrix to the current modle matrix
-     */
-    void transform(glm::mat4 transform);
 
     /**
      * Resets the model matrix to an identity matrix
@@ -42,9 +38,14 @@ public:
         m_material = material;
     }
 
-    inline void setTransform(glm::mat4 transform)
+    inline void setTransform(Transform transform)
     {
-        m_modelMatix = transform;
+        m_transform = transform;
+    }
+
+    inline Transform& getTransform()
+    {
+        return m_transform;
     }
 
     /**
@@ -66,7 +67,7 @@ private:
     std::shared_ptr<Material> m_material;
 
     std::unique_ptr<Mesh> m_mesh;
-    glm::mat4 m_modelMatix = glm::mat4(1.0f);
+    Transform m_transform;
 
     // ID used by the renderer to keep track of the objects
     uint m_rendererID;

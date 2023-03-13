@@ -13,6 +13,7 @@ public:
     virtual bool usesVertexColor() override;
 
     virtual void setShaderUniforms(ShaderProgram& shader) override;
+    virtual void setShaderAmbient(ShaderProgram &shader) override;
 
     virtual std::string getShaderName() override;
 

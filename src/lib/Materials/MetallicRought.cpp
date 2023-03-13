@@ -19,6 +19,12 @@ void MetallicRoughtness::setShaderUniforms(ShaderProgram &shader)
     shader.setFloat("material.roughtness", m_roughtness);
 }
 
+void MetallicRoughtness::setShaderAmbient(ShaderProgram &shader)
+{
+    shader.setVec3("color", m_albedo);
+    shader.setBool("hasTexture", false);
+}
+
 std::string MetallicRoughtness::getShaderName()
 {
     return "MetallicRoughtness";

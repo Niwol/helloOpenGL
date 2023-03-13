@@ -12,8 +12,9 @@ BezierCurve::BezierCurve(bool isSegementLegthCurve, float segmentLength,
 BezierCurve::~BezierCurve() {}
 
 void BezierCurve::transform(glm::mat4 transform) {
-  m_RO_curve->transform(transform);
-  m_RO_controlPolynom->transform(transform);
+//  m_RO_curve->transform(transform);
+//  m_RO_controlPolynom->transform(transform);
+    (void)transform;
 }
 
 void BezierCurve::addPoint(glm::vec3 point, bool bGenCurve) {
