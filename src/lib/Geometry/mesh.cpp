@@ -40,23 +40,11 @@ void Mesh::to_sphere(int nbRows, int nbCols)
     m_uvCoords.clear();
     m_indices.clear();
 
-    // Bottom vertex
-    m_vertices.push_back(0.0f);
-    m_vertices.push_back(-0.5f);
-    m_vertices.push_back(0.0f);
-
-    m_normals.push_back(0.0f);
-    m_normals.push_back(-0.5f);
-    m_normals.push_back(0.0f);
-
-    m_uvCoords.push_back(0.0f);
-    m_uvCoords.push_back(0.0f);
-
-    for(int i = 1; i < nbRows - 1; i++)
+    for(int i = 0; i < nbRows; i++)
     {
         for(int j = 0; j < nbCols; j++)
         {
-            float u = float(j) / float(nbCols);
+            float u = float(j) / float(nbCols - 1);
             float v = float(i) / float(nbRows - 1);
 
             float theta = u * 2.0f * M_PI;
@@ -83,42 +71,15 @@ void Mesh::to_sphere(int nbRows, int nbCols)
         }
     }
 
-    // Top vertex
-    m_vertices.push_back(0.0f);
-    m_vertices.push_back(0.5f);
-    m_vertices.push_back(0.0f);
-
-    m_normals.push_back(0.0f);
-    m_normals.push_back(0.5f);
-    m_normals.push_back(0.0f);
-
-    m_uvCoords.push_back(0.0f);
-    m_uvCoords.push_back(1.0f);
-
     // Indices
-    
-    // Bottom
-    GLuint startOffset = 1;
-    for(int i = 0; i < nbCols; i++)
+    for(int i = 0; i < nbRows - 1; i++)
     {
-        GLuint idx0 = 0;
-        GLuint idx1 = (i + 1) % nbCols + startOffset;
-        GLuint idx2 = (i) + startOffset;
-
-        m_indices.push_back(idx0);
-        m_indices.push_back(idx2);
-        m_indices.push_back(idx1);
-    }
-
-    // Center
-    for(int i = 0; i < nbRows - 3; i++)
-    {
-        for(int j = 0; j < nbCols; j++)
+        for(int j = 0; j < nbCols - 1; j++)
         {
-            GLuint idx0 = j + i * nbCols + startOffset;
-            GLuint idx1 = j + i * nbCols + nbCols + startOffset;
-            GLuint idx2 = (j + 1) % nbCols + i * nbCols + nbCols + startOffset;
-            GLuint idx3 = (j + 1) % nbCols + i * nbCols + startOffset;
+            GLuint idx0 = j + i * nbCols;
+            GLuint idx1 = j + i * nbCols + nbCols;
+            GLuint idx2 = (j + 1) + i * nbCols + nbCols;
+            GLuint idx3 = (j + 1) + i * nbCols;
 
             m_indices.push_back(idx0);
             m_indices.push_back(idx1);
@@ -128,20 +89,6 @@ void Mesh::to_sphere(int nbRows, int nbCols)
             m_indices.push_back(idx2);
             m_indices.push_back(idx3);
         }
-    }
-
-    // Top
-    GLuint topVertex = m_vertices.size() / 3 - 1;
-    startOffset = topVertex - nbCols;
-    for(int i = 0; i < nbCols; i++)
-    {
-        GLuint idx0 = topVertex;
-        GLuint idx1 = (i + 1) % nbCols + startOffset;
-        GLuint idx2 = (i) + startOffset;
-
-        m_indices.push_back(idx0);
-        m_indices.push_back(idx1);
-        m_indices.push_back(idx2);
     }
 
     m_nbIndices = m_indices.size();

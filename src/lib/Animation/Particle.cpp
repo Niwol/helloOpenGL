@@ -73,5 +73,5 @@ void Particle::updateSemiImplicite(float dt)
 
 void Particle::updateImplicite(float dt)
 {
-
+    (void)dt;
 }
