@@ -17,11 +17,11 @@ make
 ```
 
 ## Controles utilisateurs
-### Chargement démo
+### Chargement de la scène
 * 1-4 (sur le pavé numérique): Choix de la scène
 
 ### Contrôle de la caméra
-* Flèches directionnels : Mouvement de la caméra
+* ZQSD : Mouvement de la caméra
 * Espace/Ctrl-Gauche : Monté/déscente de la caméra
 * Clic droit souris : rotation de la caméra
 
