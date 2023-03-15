@@ -141,34 +141,6 @@ void Demo::handleInput(EventHandler& event, float dt)
     if(event.getKeyState(GLFW_KEY_V) & PRESSED)
         m_renderMode = RenderMode::Default;
 
-
-    // object color
-    if(event.getKeyState(GLFW_KEY_P) & PRESSED)
-    {
-        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
-        if(mat->m_metallic < 1.0f)
-            mat->m_metallic += 0.1f;
-    }
-    if(event.getKeyState(GLFW_KEY_SEMICOLON) & PRESSED)
-    {
-        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
-        if(mat->m_metallic > 0.0f)
-            mat->m_metallic -= 0.1f;
-    }
-    if(event.getKeyState(GLFW_KEY_O) & PRESSED)
-    {
-        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
-        if(mat->m_roughtness < 1.0f)
-            mat->m_roughtness += 0.1f;
-    }
-    if(event.getKeyState(GLFW_KEY_L) & PRESSED)
-    {
-        auto mat = static_cast<MetallicRoughtness*>(m_selectedObj->getMaterial().get());
-        if(mat->m_roughtness > 0.0f)
-            mat->m_roughtness -= 0.1f;
-    }
-
-
     // Particles
     if(event.getMouseButtonState(GLFW_MOUSE_BUTTON_1) & PRESSED)
     {
@@ -348,8 +320,6 @@ void Demo::scene1()
         material->m_metallic = 0.0;
 
         obj->setMaterial(material);
-
-        m_selectedObj = obj;
 
         m_scene.objects.insert(obj);
     }

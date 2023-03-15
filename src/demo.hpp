@@ -45,8 +45,6 @@ private:
 
     RenderMode m_renderMode = RenderMode::Default;
 
-    std::shared_ptr<RenderObject> m_selectedObj;
-
     std::shared_ptr<ParticleSpawner> m_spawner1;
     std::shared_ptr<ParticleSpawner> m_spawner2;
     std::set<std::shared_ptr<Particle>> m_particles;
