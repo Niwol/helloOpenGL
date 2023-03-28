@@ -16,7 +16,7 @@ void MetallicRoughtness::setShaderUniforms(ShaderProgram &shader)
 {
     shader.setVec3("material.albedo", m_albedo);
     shader.setFloat("material.metallic", m_metallic);
-    shader.setFloat("material.roughtness", m_roughtness);
+    shader.setFloat("material.roughness", m_roughtness);
 }
 
 void MetallicRoughtness::setShaderAmbient(ShaderProgram &shader)

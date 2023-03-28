@@ -230,7 +230,7 @@ void main()
     result = result * getLightColor(fragPos);
 
     vec3 lightAtt = getLightColor(fragPos);
-//
+
 //    float alpha = material.roughness * material.roughness;
 //
 //    vec3 spec_brdf = specular_brdf(alpha, V, N, L, H);
